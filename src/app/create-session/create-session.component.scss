@@ -246,6 +246,7 @@ $muted: #94a3b8;
     border-radius: 0 !important;
     background: transparent !important;
     padding-left: 0.75rem !important;
+    color: $text !important;
     &:focus { border-color: transparent !important; }
   }
 }
