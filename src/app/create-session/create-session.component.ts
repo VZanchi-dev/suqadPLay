@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -20,32 +20,26 @@ const FALLBACK_GAMES: Game[] = GAMES_LIST.map(g => ({
   styleUrl: './create-session.component.scss'
 })
 export class CreateSessionComponent implements OnInit {
-  private auth    = inject(AuthService);
-  private sessions = inject(SessionService);
-  private fb      = inject(FormBuilder);
-  private router  = inject(Router);
-
   games: Game[] = [];
   selectedGame: Game | null = null;
 
-  levels: PlayerLevel[]  = ['Débutant', 'Intermédiaire', 'Confirmé', 'Expert'];
-  ageRanges: AgeRange[]  = ['13-17 ans', '18-25 ans', '26-35 ans', '35+ ans'];
-  languages: Language[]  = ['Français', 'English', 'Español', 'Deutsch', 'Português'];
+  levels: PlayerLevel[] = ['Débutant', 'Intermédiaire', 'Confirmé', 'Expert'];
+  ageRanges: AgeRange[] = ['13-17 ans', '18-25 ans', '26-35 ans', '35+ ans'];
+  languages: Language[] = ['Français', 'English', 'Español', 'Deutsch', 'Português'];
 
   selectedLanguages = new Set<Language>();
 
-  form!: FormGroup;
+  form: FormGroup;
   submitted = false;
   saving    = false;
   errorMsg  = '';
 
-  ngOnInit() {
-    if (!this.auth.currentUser) { this.router.navigate(['/']); return; }
-
-    this.sessions.getGames().subscribe(g => {
-      this.games = g.length > 0 ? g : FALLBACK_GAMES;
-    });
-
+  constructor(
+    private auth: AuthService,
+    private sessionSvc: SessionService,
+    private fb: FormBuilder,
+    private router: Router
+  ) {
     this.form = this.fb.group({
       description:      ['', [Validators.required, Validators.minLength(10), Validators.maxLength(300)]],
       level_required:   ['', [Validators.required]],
@@ -55,7 +49,6 @@ export class CreateSessionComponent implements OnInit {
       players_max:      [4, [Validators.required, Validators.min(2), Validators.max(10)]],
     });
 
-    // Rend le lien obligatoire si Discord est requis
     this.form.get('discord_required')!.valueChanges.subscribe((required: boolean) => {
       const ctrl = this.form.get('discord_invite')!;
       if (required) {
@@ -68,9 +61,14 @@ export class CreateSessionComponent implements OnInit {
     });
   }
 
-  selectGame(game: Game) {
-    this.selectedGame = game;
+  ngOnInit() {
+    if (!this.auth.currentUser) { this.router.navigate(['/connexion']); return; }
+    this.sessionSvc.getGames().subscribe(g => {
+      this.games = g.length > 0 ? g : FALLBACK_GAMES;
+    });
   }
+
+  selectGame(game: Game) { this.selectedGame = game; }
 
   toggleLanguage(lang: Language) {
     this.selectedLanguages.has(lang)
@@ -81,20 +79,20 @@ export class CreateSessionComponent implements OnInit {
   get descLength(): number { return this.form.value.description?.length ?? 0; }
   get f() { return this.form.controls; }
 
-  async onSubmit() {
+  onSubmit() {
     this.submitted = true;
     this.errorMsg  = '';
 
-    if (!this.selectedGame)              { this.errorMsg = 'Choisis un jeu pour continuer.'; return; }
+    if (!this.selectedGame)                { this.errorMsg = 'Choisis un jeu pour continuer.'; return; }
     if (this.selectedLanguages.size === 0) { this.errorMsg = 'Sélectionne au moins une langue.'; return; }
 
     if (this.form.invalid) {
       const c = this.form.controls;
-      if (c['description'].errors)    { this.errorMsg = 'La description doit faire au moins 10 caractères.'; }
-      else if (c['level_required'].errors) { this.errorMsg = 'Sélectionne un niveau requis.'; }
-      else if (c['age_range'].errors)  { this.errorMsg = 'Sélectionne une tranche d\'âge.'; }
-      else if (c['discord_invite'].errors) { this.errorMsg = 'Saisis le code de ton serveur Discord.'; }
-      else { this.errorMsg = 'Vérifie que tous les champs sont bien remplis.'; }
+      if (c['description'].errors)         this.errorMsg = 'La description doit faire au moins 10 caractères.';
+      else if (c['level_required'].errors)  this.errorMsg = 'Sélectionne un niveau requis.';
+      else if (c['age_range'].errors)       this.errorMsg = 'Sélectionne une tranche d\'âge.';
+      else if (c['discord_invite'].errors)  this.errorMsg = 'Saisis le code de ton serveur Discord.';
+      else                                  this.errorMsg = 'Vérifie que tous les champs sont bien remplis.';
       return;
     }
 
@@ -104,10 +102,10 @@ export class CreateSessionComponent implements OnInit {
     }
 
     this.saving = true;
+    const v    = this.form.value;
     const user = this.auth.currentUser;
-    const v = this.form.value;
 
-    this.sessions.createSession({
+    this.sessionSvc.createSession({
       game_id:          this.selectedGame.id,
       description:      v.description,
       level_required:   v.level_required,
@@ -121,7 +119,7 @@ export class CreateSessionComponent implements OnInit {
       if (session) {
         this.router.navigate(['/recherche']);
       } else {
-        this.errorMsg = 'Erreur lors de la création. Vérifie ta connexion ou les paramètres Supabase (RLS).';
+        this.errorMsg = 'Erreur lors de la création — vérifie les règles RLS dans Supabase.';
       }
     });
   }
