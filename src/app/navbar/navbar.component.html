@@ -14,6 +14,7 @@
 
     <div class="navbar__actions">
       @if (user) {
+        <a routerLink="/creer-session" class="btn btn--primary">➕ Créer une session</a>
         <!-- Connecté : menu Mon compte -->
         <div class="user-menu" [class.user-menu--open]="menuOpen">
           <button class="user-menu__trigger" (click)="toggleMenu()">
