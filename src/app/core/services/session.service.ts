@@ -96,11 +96,20 @@ export class SessionService {
       this.supabase.client
         .from('sessions')
         .insert({ ...dto, host_id: hostId, status: 'open' } as any)
-        .select('*, game:games(*), host:profiles!host_id(*)')
+        .select('id, game_id, description, level_required, age_range, languages, discord_required, players_max, status, created_at, host_id')
         .single()
     ).pipe(
-      map(({ data, error }) => { if (error) throw error; return data as Session; }),
-      catchError(err => { console.error('Erreur createSession:', err); return of(null); })
+      map(({ data, error }) => {
+        if (error) {
+          console.error('[createSession] Supabase error:', error.message, error.details, error.hint);
+          throw error;
+        }
+        return data as Session;
+      }),
+      catchError(err => {
+        console.error('[createSession] caught:', err);
+        return of(null);
+      })
     );
   }
 

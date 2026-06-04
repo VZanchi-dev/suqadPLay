@@ -85,12 +85,26 @@ export class CreateSessionComponent implements OnInit {
     this.submitted = true;
     this.errorMsg  = '';
 
-    if (!this.selectedGame) { this.errorMsg = 'Choisis un jeu.'; return; }
+    if (!this.selectedGame)              { this.errorMsg = 'Choisis un jeu pour continuer.'; return; }
     if (this.selectedLanguages.size === 0) { this.errorMsg = 'Sélectionne au moins une langue.'; return; }
-    if (this.form.invalid) return;
+
+    if (this.form.invalid) {
+      const c = this.form.controls;
+      if (c['description'].errors)    { this.errorMsg = 'La description doit faire au moins 10 caractères.'; }
+      else if (c['level_required'].errors) { this.errorMsg = 'Sélectionne un niveau requis.'; }
+      else if (c['age_range'].errors)  { this.errorMsg = 'Sélectionne une tranche d\'âge.'; }
+      else if (c['discord_invite'].errors) { this.errorMsg = 'Saisis le code de ton serveur Discord.'; }
+      else { this.errorMsg = 'Vérifie que tous les champs sont bien remplis.'; }
+      return;
+    }
+
+    if (!this.auth.currentUser) {
+      this.errorMsg = 'Tu dois être connecté pour créer une session.';
+      return;
+    }
 
     this.saving = true;
-    const user = this.auth.currentUser!;
+    const user = this.auth.currentUser;
     const v = this.form.value;
 
     this.sessions.createSession({
@@ -107,7 +121,7 @@ export class CreateSessionComponent implements OnInit {
       if (session) {
         this.router.navigate(['/recherche']);
       } else {
-        this.errorMsg = 'Une erreur est survenue. Réessaie.';
+        this.errorMsg = 'Erreur lors de la création. Vérifie ta connexion ou les paramètres Supabase (RLS).';
       }
     });
   }
