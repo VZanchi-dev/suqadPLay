@@ -6,20 +6,11 @@ import { AuthService } from '../core/services/auth.service';
 import { SessionService } from '../core/services/session.service';
 import { Game, PlayerLevel, AgeRange, Language } from '../core/types/database.types';
 import { NavbarComponent } from '../navbar/navbar.component';
+import { GAMES_LIST } from '../core/data/games.data';
 
-const FALLBACK_GAMES: Game[] = [
-  { id: 'lol',       name: 'League of Legends',          emoji: '⚔️', category: 'MOBA',         created_at: '' },
-  { id: 'valorant',  name: 'Valorant',                   emoji: '🔫', category: 'FPS',          created_at: '' },
-  { id: 'fortnite',  name: 'Fortnite',                   emoji: '🏗️', category: 'Battle Royale', created_at: '' },
-  { id: 'csgo',      name: 'CS2',                        emoji: '💣', category: 'FPS',          created_at: '' },
-  { id: 'overwatch', name: 'Overwatch 2',                emoji: '🦸', category: 'FPS',          created_at: '' },
-  { id: 'apex',      name: 'Apex Legends',               emoji: '🎯', category: 'Battle Royale', created_at: '' },
-  { id: 'wow',       name: 'World of Warcraft',          emoji: '🐉', category: 'MMO',          created_at: '' },
-  { id: 'minecraft', name: 'Minecraft',                  emoji: '⛏️', category: 'Simulation',   created_at: '' },
-  { id: 'pcm2025',   name: 'Pro Cyclist Manager 2025',   emoji: '🚴', category: 'Sport',        created_at: '' },
-  { id: 'pcm2026',   name: 'Pro Cyclist Manager 2026',   emoji: '🚴', category: 'Sport',        created_at: '' },
-  { id: 'homm',      name: 'Heroes of Might & Magic: Olden Era', emoji: '🏰', category: 'Stratégie', created_at: '' },
-];
+const FALLBACK_GAMES: Game[] = GAMES_LIST.map(g => ({
+  id: g.id, name: g.label, emoji: g.icon, category: g.category, created_at: ''
+}));
 
 @Component({
   selector: 'app-create-session',

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { SupabaseService } from '../core/services/supabase.service';
+import { GAMES_LIST } from '../core/data/games.data';
 
 function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
   const password = control.get('password');
@@ -31,19 +32,7 @@ export class RegisterComponent {
   showPassword = false;
   showConfirm = false;
 
-  games = [
-    { id: 'lol',       label: 'League of Legends',                icon: '⚔️' },
-    { id: 'valorant',  label: 'Valorant',                         icon: '🔫' },
-    { id: 'fortnite',  label: 'Fortnite',                         icon: '🏗️' },
-    { id: 'minecraft', label: 'Minecraft',                        icon: '⛏️' },
-    { id: 'csgo',      label: 'CS2',                              icon: '💣' },
-    { id: 'overwatch', label: 'Overwatch 2',                      icon: '🦸' },
-    { id: 'apex',      label: 'Apex Legends',                     icon: '🎯' },
-    { id: 'wow',       label: 'World of Warcraft',                icon: '🐉' },
-    { id: 'pcm2025',   label: 'Pro Cyclist Manager 2025',         icon: '🚴' },
-    { id: 'pcm2026',   label: 'Pro Cyclist Manager 2026',         icon: '🚴' },
-    { id: 'homm',      label: 'Heroes of Might & Magic: Olden Era', icon: '🏰' },
-  ];
+  games = GAMES_LIST;
 
   selectedGames = new Set<string>();
 

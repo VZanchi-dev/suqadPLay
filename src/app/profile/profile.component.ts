@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
+import { GAMES_LIST } from '../core/data/games.data';
 import { SupabaseService } from '../core/services/supabase.service';
 import { PlayerLevel, AgeRange, Language } from '../core/types/database.types';
 
@@ -28,19 +29,7 @@ export class ProfileComponent implements OnInit {
   ageRanges: AgeRange[]    = ['13-17 ans', '18-25 ans', '26-35 ans', '35+ ans'];
   languages: Language[]    = ['Français', 'English', 'Español', 'Deutsch', 'Português'];
 
-  allGames = [
-    { id: 'lol',       label: 'League of Legends',                icon: '⚔️' },
-    { id: 'valorant',  label: 'Valorant',                         icon: '🔫' },
-    { id: 'fortnite',  label: 'Fortnite',                         icon: '🏗️' },
-    { id: 'minecraft', label: 'Minecraft',                        icon: '⛏️' },
-    { id: 'csgo',      label: 'CS2',                              icon: '💣' },
-    { id: 'overwatch', label: 'Overwatch 2',                      icon: '🦸' },
-    { id: 'apex',      label: 'Apex Legends',                     icon: '🎯' },
-    { id: 'wow',       label: 'World of Warcraft',                icon: '🐉' },
-    { id: 'pcm2025',   label: 'Pro Cyclist Manager 2025',         icon: '🚴' },
-    { id: 'pcm2026',   label: 'Pro Cyclist Manager 2026',         icon: '🚴' },
-    { id: 'homm',      label: 'Heroes of Might & Magic: Olden Era', icon: '🏰' },
-  ];
+  allGames = GAMES_LIST;
 
   selectedGames = new Set<string>();
   selectedLanguages = new Set<string>();
