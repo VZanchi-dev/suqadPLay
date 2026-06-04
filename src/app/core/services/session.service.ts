@@ -104,6 +104,32 @@ export class SessionService {
     );
   }
 
+  closeSession(sessionId: string): Observable<boolean> {
+    if (!this.supabase.isBrowser) return of(false);
+    return from(
+      this.supabase.client
+        .from('sessions')
+        .update({ status: 'closed' } as any)
+        .eq('id', sessionId)
+    ).pipe(
+      map(({ error }) => { if (error) throw error; return true; }),
+      catchError(err => { console.error('Erreur closeSession:', err); return of(false); })
+    );
+  }
+
+  getSessionCountByUser(userId: string): Observable<number> {
+    if (!this.supabase.isBrowser) return of(0);
+    return from(
+      this.supabase.client
+        .from('sessions')
+        .select('id', { count: 'exact', head: true })
+        .eq('host_id', userId)
+    ).pipe(
+      map(({ count, error }) => { if (error) throw error; return count ?? 0; }),
+      catchError(() => of(0))
+    );
+  }
+
   joinSession(sessionId: string, playerId: string): Observable<boolean> {
     if (!this.supabase.isBrowser) return of(false);
 

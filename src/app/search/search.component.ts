@@ -7,6 +7,7 @@ import { Subscription } from 'rxjs';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { SessionService } from '../core/services/session.service';
 import { Session, AgeRange, GameCategory, PlayerLevel } from '../core/types/database.types';
+import { AuthService } from '../core/services/auth.service';
 
 // Mapping drapeaux ↔ valeurs BDD
 const LANG_TO_DB: Record<string, string> = {
@@ -44,7 +45,10 @@ interface UiFilters {
 export class SearchComponent implements OnDestroy {
 
   private sessionService = inject(SessionService);
+  private auth = inject(AuthService);
   private sub: Subscription;
+
+  get currentUserId(): string | undefined { return this.auth.currentUser?.id; }
 
   readonly AGE_RANGES: AgeRange[] = ['13-17 ans', '18-25 ans', '26-35 ans', '35+ ans'];
   readonly CATEGORIES: GameCategory[] = ['FPS', 'MOBA', 'Stratégie', 'Battle Royale', 'RPG', 'Sport', 'MMO', 'Simulation'];
@@ -157,6 +161,18 @@ export class SearchComponent implements OnDestroy {
     const raw = session.players_count as any;
     if (Array.isArray(raw)) return raw[0]?.count ?? 0;
     return raw ?? 0;
+  }
+
+  closeSession(sessionId: string) {
+    this.sessionService.closeSession(sessionId).subscribe(ok => {
+      if (ok) {
+        this.sessions.update(list => list.filter(s => s.id !== sessionId));
+      }
+    });
+  }
+
+  isOwner(session: Session): boolean {
+    return !!this.currentUserId && session.host_id === this.currentUserId;
   }
 
   trackById(_: number, session: Session) {

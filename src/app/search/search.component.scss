@@ -449,6 +449,25 @@ $text-muted: #64748b;
 
 .slots-text { font-size: 0.75rem; color: $text-muted; }
 
+.btn-close {
+  padding: 0.55rem 1.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  background: rgba(248, 113, 113, 0.1);
+  color: #f87171;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+  white-space: nowrap;
+
+  &:hover {
+    background: rgba(248, 113, 113, 0.2);
+    border-color: #f87171;
+  }
+}
+
 .btn-join {
   padding: 0.55rem 1.5rem;
   border-radius: 0.5rem;

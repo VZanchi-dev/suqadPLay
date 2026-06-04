@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
+import { SessionService } from '../core/services/session.service';
 import { GAMES_LIST } from '../core/data/games.data';
 import { SupabaseService } from '../core/services/supabase.service';
 import { PlayerLevel, AgeRange, Language } from '../core/types/database.types';
@@ -15,15 +16,17 @@ import { PlayerLevel, AgeRange, Language } from '../core/types/database.types';
   styleUrl: './profile.component.scss'
 })
 export class ProfileComponent implements OnInit {
-  private auth   = inject(AuthService);
-  private supa   = inject(SupabaseService);
-  private fb     = inject(FormBuilder);
-  private router = inject(Router);
+  private auth     = inject(AuthService);
+  private supa     = inject(SupabaseService);
+  private fb       = inject(FormBuilder);
+  private router   = inject(Router);
+  private sessions = inject(SessionService);
 
   user = this.auth.currentUser;
   editing = false;
   saving  = false;
   saved   = false;
+  sessionCount = 0;
 
   levels:    PlayerLevel[] = ['Débutant', 'Intermédiaire', 'Confirmé', 'Expert'];
   ageRanges: AgeRange[]    = ['13-17 ans', '18-25 ans', '26-35 ans', '35+ ans'];
@@ -40,6 +43,10 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit() {
     if (!this.user) { this.router.navigate(['/']); return; }
+
+    this.sessions.getSessionCountByUser(this.user.id).subscribe(count => {
+      this.sessionCount = count;
+    });
 
     const favGames: string[] = this.meta['favorite_games'] ?? [];
     favGames.forEach(g => this.selectedGames.add(g));

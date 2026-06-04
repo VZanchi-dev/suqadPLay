@@ -29,6 +29,12 @@
           @if (meta['bio']) {
             <p class="profile-banner__bio">{{ meta['bio'] }}</p>
           }
+          <div class="profile-banner__stats">
+            <div class="profile-stat">
+              <span class="profile-stat__value">{{ sessionCount }}</span>
+              <span class="profile-stat__label">session{{ sessionCount > 1 ? 's' : '' }} créée{{ sessionCount > 1 ? 's' : '' }}</span>
+            </div>
+          </div>
         </div>
         <div class="profile-banner__actions">
           @if (!editing) {

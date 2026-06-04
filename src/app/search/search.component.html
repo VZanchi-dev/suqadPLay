@@ -205,13 +205,19 @@
                 <span class="slots-text">{{ playersCount(session) }}/{{ session.players_max }} joueurs</span>
               </div>
 
-              <button
-                class="btn-join"
-                [class.full]="session.status === 'full'"
-                [disabled]="session.status === 'full'"
-              >
-                {{ session.status === 'full' ? 'Complet' : 'Rejoindre' }}
-              </button>
+              @if (isOwner(session)) {
+                <button class="btn-close" (click)="closeSession(session.id)">
+                  🔴 Terminer
+                </button>
+              } @else {
+                <button
+                  class="btn-join"
+                  [class.full]="session.status === 'full'"
+                  [disabled]="session.status === 'full'"
+                >
+                  {{ session.status === 'full' ? 'Complet' : 'Rejoindre' }}
+                </button>
+              }
             </div>
 
           </div>

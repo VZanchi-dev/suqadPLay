@@ -71,6 +71,33 @@ $muted: #94a3b8;
     max-width: 500px;
   }
 
+  &__stats {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 0.75rem;
+  }
+}
+
+.profile-stat {
+  display: flex;
+  flex-direction: column;
+
+  &__value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: $text;
+    line-height: 1;
+  }
+
+  &__label {
+    font-size: 0.75rem;
+    color: $muted;
+    margin-top: 0.15rem;
+  }
+}
+
+.profile-banner {
+
   &__actions {
     margin-left: auto;
     padding-top: 0.25rem;
