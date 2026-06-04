@@ -1,0 +1,78 @@
+<div class="login-page">
+  <div class="login-page__bg-blur login-page__bg-blur--1"></div>
+  <div class="login-page__bg-blur login-page__bg-blur--2"></div>
+
+  <div class="login-card">
+
+    <div class="login-card__header">
+      <a routerLink="/" class="login-card__logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">SquadPlay</span>
+      </a>
+      <h1 class="login-card__title">Bon retour !</h1>
+      <p class="login-card__subtitle">Connecte-toi pour retrouver ta team.</p>
+    </div>
+
+    <form class="login-form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+      <div class="form-group" [class.form-group--error]="submitted && f['email'].errors">
+        <label for="email">Adresse email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="lucas@example.com"
+          autocomplete="email"
+        />
+        @if (submitted && f['email'].errors) {
+          <span class="form-error">
+            @if (f['email'].errors['required']) { L'email est requis. }
+            @else if (f['email'].errors['email']) { Adresse email invalide. }
+          </span>
+        }
+      </div>
+
+      <div class="form-group" [class.form-group--error]="submitted && f['password'].errors">
+        <div class="label-row">
+          <label for="password">Mot de passe</label>
+          <a href="#" class="forgot-link">Mot de passe oublié ?</a>
+        </div>
+        <div class="input-suffix-wrapper">
+          <input
+            id="password"
+            [type]="showPassword ? 'text' : 'password'"
+            formControlName="password"
+            placeholder="••••••••"
+            autocomplete="current-password"
+          />
+          <button type="button" class="toggle-pw" (click)="showPassword = !showPassword">
+            {{ showPassword ? '🙈' : '👁️' }}
+          </button>
+        </div>
+        @if (submitted && f['password'].errors) {
+          <span class="form-error">Le mot de passe est requis.</span>
+        }
+      </div>
+
+      @if (errorMsg) {
+        <div class="form-error-banner">⚠️ {{ errorMsg }}</div>
+      }
+
+      <button type="submit" class="btn btn--primary btn--full" [disabled]="loading">
+        @if (loading) { <span class="btn-spinner"></span> Connexion… }
+        @else { Se connecter }
+      </button>
+
+    </form>
+
+    <div class="login-card__divider">
+      <span>ou</span>
+    </div>
+
+    <p class="login-card__register">
+      Pas encore de compte ?
+      <a routerLink="/inscription">Créer un compte gratuit</a>
+    </p>
+
+  </div>
+</div>
