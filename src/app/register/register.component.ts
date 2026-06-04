@@ -32,14 +32,17 @@ export class RegisterComponent {
   showConfirm = false;
 
   games = [
-    { id: 'lol', label: 'League of Legends', icon: '⚔️' },
-    { id: 'valorant', label: 'Valorant', icon: '🔫' },
-    { id: 'fortnite', label: 'Fortnite', icon: '🏗️' },
-    { id: 'minecraft', label: 'Minecraft', icon: '⛏️' },
-    { id: 'csgo', label: 'CS2', icon: '💣' },
-    { id: 'overwatch', label: 'Overwatch 2', icon: '🦸' },
-    { id: 'apex', label: 'Apex Legends', icon: '🎯' },
-    { id: 'wow', label: 'World of Warcraft', icon: '🐉' },
+    { id: 'lol',       label: 'League of Legends',                icon: '⚔️' },
+    { id: 'valorant',  label: 'Valorant',                         icon: '🔫' },
+    { id: 'fortnite',  label: 'Fortnite',                         icon: '🏗️' },
+    { id: 'minecraft', label: 'Minecraft',                        icon: '⛏️' },
+    { id: 'csgo',      label: 'CS2',                              icon: '💣' },
+    { id: 'overwatch', label: 'Overwatch 2',                      icon: '🦸' },
+    { id: 'apex',      label: 'Apex Legends',                     icon: '🎯' },
+    { id: 'wow',       label: 'World of Warcraft',                icon: '🐉' },
+    { id: 'pcm2025',   label: 'Pro Cyclist Manager 2025',         icon: '🚴' },
+    { id: 'pcm2026',   label: 'Pro Cyclist Manager 2026',         icon: '🚴' },
+    { id: 'homm',      label: 'Heroes of Might & Magic: Olden Era', icon: '🏰' },
   ];
 
   selectedGames = new Set<string>();
