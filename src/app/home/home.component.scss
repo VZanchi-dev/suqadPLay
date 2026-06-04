@@ -1,0 +1,544 @@
+// ─── Variables ───────────────────────────────────────────────────────────────
+$bg-dark: #0d0f1a;
+$bg-card: #131626;
+$bg-card-hover: #1a1f38;
+$border: rgba(255, 255, 255, 0.07);
+$purple: #7c3aed;
+$purple-light: #a855f7;
+$cyan: #06b6d4;
+$text-primary: #f1f5f9;
+$text-secondary: #94a3b8;
+$text-muted: #64748b;
+
+// ─── Global ───────────────────────────────────────────────────────────────────
+.page {
+  background: $bg-dark;
+  color: $text-primary;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, $purple-light 0%, $cyan 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+// ─── Buttons ─────────────────────────────────────────────────────────────────
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  &--primary {
+    background: linear-gradient(135deg, $purple 0%, $purple-light 100%);
+    color: #fff;
+    box-shadow: 0 0 20px rgba($purple, 0.4);
+    &:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba($purple, 0.6); }
+  }
+
+  &--ghost {
+    background: transparent;
+    color: $text-secondary;
+    &:hover { color: $text-primary; }
+  }
+
+  &--outline {
+    background: transparent;
+    color: $text-primary;
+    border: 1px solid $border;
+    &:hover { border-color: $purple-light; color: $purple-light; }
+  }
+
+  &--lg {
+    padding: 0.85rem 2rem;
+    font-size: 1rem;
+    border-radius: 0.625rem;
+  }
+}
+
+
+// ─── Hero ─────────────────────────────────────────────────────────────────────
+.hero {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 6rem 1.5rem 5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  overflow: hidden;
+
+  &__bg-blur {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+
+    &--1 {
+      width: 400px; height: 400px;
+      background: rgba($purple, 0.25);
+      top: -50px; left: -100px;
+    }
+    &--2 {
+      width: 300px; height: 300px;
+      background: rgba($cyan, 0.15);
+      bottom: 0; right: 100px;
+    }
+  }
+
+  &__content { position: relative; z-index: 1; }
+
+  &__badge {
+    display: inline-block;
+    background: rgba($purple, 0.15);
+    border: 1px solid rgba($purple-light, 0.3);
+    color: $purple-light;
+    padding: 0.35rem 0.9rem;
+    border-radius: 99px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+  }
+
+  &__title {
+    font-size: clamp(2.2rem, 4vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin: 0 0 1.25rem;
+  }
+
+  &__subtitle {
+    font-size: 1.1rem;
+    color: $text-secondary;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    max-width: 500px;
+  }
+
+  &__ctas {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 3rem;
+  }
+
+  &__stats {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  &__visual { position: relative; z-index: 1; }
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+
+  &__number { font-size: 1.5rem; font-weight: 800; color: $text-primary; }
+  &__label { font-size: 0.75rem; color: $text-muted; }
+  &__divider { width: 1px; height: 36px; background: $border; }
+}
+
+// ─── Game Card Preview ────────────────────────────────────────────────────────
+.game-card-preview {
+  background: $bg-card;
+  border: 1px solid $border;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+
+  .gcp__header {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .gcp__dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    &--red { background: #ef4444; }
+    &--yellow { background: #f59e0b; }
+    &--green { background: #22c55e; }
+  }
+
+  .gcp__title {
+    margin-left: 0.5rem;
+    font-size: 0.8rem;
+    color: $text-muted;
+  }
+
+  .gcp__game {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .gcp__info {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+
+    span {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 99px;
+    }
+  }
+
+  .gcp__rank {
+    background: rgba(#f59e0b, 0.15);
+    color: #f59e0b;
+  }
+
+  .gcp__mode {
+    background: rgba($purple, 0.15);
+    color: $purple-light;
+  }
+
+  .gcp__players {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .gcp__join {
+    width: 100%;
+    padding: 0.7rem;
+    background: linear-gradient(135deg, $purple, $purple-light);
+    color: #fff;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: opacity 0.2s;
+    &:hover { opacity: 0.85; }
+  }
+}
+
+.player-slot {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+
+  &--filled { background: rgba(255,255,255,0.04); }
+  &--empty {
+    background: rgba(255,255,255,0.02);
+    border: 1px dashed rgba(255,255,255,0.1);
+    opacity: 0.5;
+  }
+
+  .player-avatar { font-size: 1rem; }
+  .player-name { flex: 1; font-size: 0.85rem; font-weight: 500; }
+  .player-role {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+    background: rgba($cyan, 0.1);
+    color: $cyan;
+    border-radius: 99px;
+  }
+}
+
+// ─── Section Shared ───────────────────────────────────────────────────────────
+.section-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 5rem 1.5rem;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 3.5rem;
+}
+
+.section-tag {
+  display: inline-block;
+  background: rgba($purple, 0.12);
+  color: $purple-light;
+  border: 1px solid rgba($purple-light, 0.25);
+  padding: 0.3rem 0.85rem;
+  border-radius: 99px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+}
+
+.section-title {
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  margin: 0 0 0.75rem;
+}
+
+.section-subtitle {
+  color: $text-secondary;
+  font-size: 1rem;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+// ─── Features ─────────────────────────────────────────────────────────────────
+.features { border-top: 1px solid $border; }
+
+.features__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}
+
+.feature-card {
+  background: $bg-card;
+  border: 1px solid $border;
+  border-radius: 1rem;
+  padding: 1.75rem 1.5rem;
+  transition: all 0.25s ease;
+
+  &:hover {
+    background: $bg-card-hover;
+    border-color: rgba($purple-light, 0.25);
+    transform: translateY(-4px);
+  }
+
+  &__icon { font-size: 2rem; margin-bottom: 1rem; }
+  &__title { font-size: 1rem; font-weight: 700; margin: 0 0 0.5rem; }
+  &__desc { font-size: 0.875rem; color: $text-secondary; line-height: 1.6; margin: 0; }
+}
+
+// ─── Games ────────────────────────────────────────────────────────────────────
+.games { border-top: 1px solid $border; background: rgba(255,255,255,0.01); }
+
+.games__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+.game-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: $bg-card;
+  border: 1px solid $border;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: rgba($purple-light, 0.3);
+    background: $bg-card-hover;
+  }
+
+  &__emoji { font-size: 2rem; }
+  &__info { flex: 1; }
+  &__name { font-size: 0.95rem; font-weight: 700; margin: 0 0 0.2rem; }
+  &__genre { font-size: 0.75rem; color: $text-muted; }
+  &__players {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    color: $text-secondary;
+    white-space: nowrap;
+  }
+}
+
+.online-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+  flex-shrink: 0;
+}
+
+.games__more { text-align: center; }
+
+// ─── How it works ─────────────────────────────────────────────────────────────
+.how-it-works { border-top: 1px solid $border; }
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 2rem;
+    left: calc(16% + 2rem);
+    right: calc(16% + 2rem);
+    height: 1px;
+    background: linear-gradient(90deg, $purple, $cyan);
+    opacity: 0.3;
+  }
+}
+
+.step {
+  text-align: center;
+
+  &__number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, $purple, $purple-light);
+    font-size: 1rem;
+    font-weight: 800;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 0 24px rgba($purple, 0.4);
+  }
+
+  &__title { font-size: 1.1rem; font-weight: 700; margin: 0 0 0.5rem; }
+  &__desc { font-size: 0.875rem; color: $text-secondary; line-height: 1.6; margin: 0; }
+}
+
+// ─── CTA Banner ───────────────────────────────────────────────────────────────
+.cta-banner {
+  position: relative;
+  border-top: 1px solid $border;
+  overflow: hidden;
+
+  &__blur {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba($purple, 0.2) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  &__content {
+    position: relative;
+    z-index: 1;
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 6rem 1.5rem;
+    text-align: center;
+
+    h2 {
+      font-size: clamp(1.75rem, 3.5vw, 2.75rem);
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin: 0 0 1rem;
+    }
+
+    p {
+      color: $text-secondary;
+      font-size: 1.05rem;
+      margin-bottom: 2rem;
+    }
+  }
+}
+
+// ─── Footer ───────────────────────────────────────────────────────────────────
+.footer {
+  border-top: 1px solid $border;
+
+  &__inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+    display: flex;
+    gap: 4rem;
+  }
+
+  &__brand {
+    flex: 0 0 220px;
+
+    .logo-icon { font-size: 1.5rem; }
+    .logo-text { font-size: 1.2rem; font-weight: 700; margin-left: 0.4rem; }
+
+    p {
+      margin-top: 0.75rem;
+      font-size: 0.85rem;
+      color: $text-muted;
+      line-height: 1.5;
+    }
+  }
+
+  &__links {
+    flex: 1;
+    display: flex;
+    gap: 3rem;
+  }
+
+  &__col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+
+    h4 {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: $text-primary;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin: 0 0 0.25rem;
+    }
+
+    a {
+      color: $text-muted;
+      text-decoration: none;
+      font-size: 0.875rem;
+      transition: color 0.2s;
+      &:hover { color: $text-primary; }
+    }
+  }
+
+  &__bottom {
+    border-top: 1px solid $border;
+    padding: 1.25rem 1.5rem;
+    text-align: center;
+    font-size: 0.8rem;
+    color: $text-muted;
+  }
+}
+
+// ─── Responsive ───────────────────────────────────────────────────────────────
+@media (max-width: 1024px) {
+  .features__grid { grid-template-columns: repeat(2, 1fr); }
+  .games__grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    grid-template-columns: 1fr;
+    padding: 3rem 1.5rem 4rem;
+    gap: 2.5rem;
+  }
+
+  .navbar__links { display: none; }
+
+  .steps {
+    grid-template-columns: 1fr;
+    &::before { display: none; }
+  }
+
+  .features__grid { grid-template-columns: 1fr; }
+  .games__grid { grid-template-columns: 1fr; }
+
+  .footer__inner { flex-direction: column; gap: 2rem; }
+  .footer__brand { flex: none; }
+  .footer__links { flex-wrap: wrap; gap: 2rem; }
+}

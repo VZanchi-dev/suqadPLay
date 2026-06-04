@@ -1,0 +1,208 @@
+<div class="register-page">
+  <div class="register-page__bg-blur register-page__bg-blur--1"></div>
+  <div class="register-page__bg-blur register-page__bg-blur--2"></div>
+
+  <div class="register-card">
+    <div class="register-card__header">
+      <a routerLink="/" class="register-card__logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">SquadPlay</span>
+      </a>
+      <h1 class="register-card__title">Crée ton compte</h1>
+      <p class="register-card__subtitle">Rejoins des milliers de gamers dès maintenant</p>
+    </div>
+
+    @if (success) {
+      <div class="register-success">
+        <span class="register-success__icon">📧</span>
+        <h2>Vérifie ton email !</h2>
+        <p>
+          Un lien de confirmation a été envoyé à<br />
+          <strong>{{ registeredEmail }}</strong>
+        </p>
+        <p class="register-success__hint">
+          Clique sur le lien dans l'email pour activer ton compte.<br />
+          Pense à vérifier tes spams si tu ne le reçois pas.
+        </p>
+        <a routerLink="/" class="btn btn--primary">Retour à l'accueil</a>
+      </div>
+    } @else {
+      <form class="register-form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+        <!-- SECTION : Identité -->
+        <div class="form-section">
+          <h2 class="form-section__title">Identité</h2>
+
+          <div class="form-row">
+            <div class="form-group" [class.form-group--error]="submitted && f['nom'].errors">
+              <label for="nom">Nom</label>
+              <input id="nom" type="text" formControlName="nom" placeholder="Dupont" autocomplete="family-name" />
+              @if (submitted && f['nom'].errors) {
+                <span class="form-error">
+                  @if (f['nom'].errors['required']) { Le nom est requis. }
+                  @else if (f['nom'].errors['minlength']) { Minimum 2 caractères. }
+                </span>
+              }
+            </div>
+
+            <div class="form-group" [class.form-group--error]="submitted && f['prenom'].errors">
+              <label for="prenom">Prénom</label>
+              <input id="prenom" type="text" formControlName="prenom" placeholder="Lucas" autocomplete="given-name" />
+              @if (submitted && f['prenom'].errors) {
+                <span class="form-error">
+                  @if (f['prenom'].errors['required']) { Le prénom est requis. }
+                  @else if (f['prenom'].errors['minlength']) { Minimum 2 caractères. }
+                </span>
+              }
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group" [class.form-group--error]="submitted && f['pseudo'].errors">
+              <label for="pseudo">Pseudo</label>
+              <div class="input-prefix-wrapper">
+                <span class="input-prefix">&#64;</span>
+                <input id="pseudo" type="text" formControlName="pseudo" placeholder="ShadowWolf42" autocomplete="username" />
+              </div>
+              @if (submitted && f['pseudo'].errors) {
+                <span class="form-error">
+                  @if (f['pseudo'].errors['required']) { Le pseudo est requis. }
+                  @else if (f['pseudo'].errors['minlength']) { Minimum 3 caractères. }
+                  @else if (f['pseudo'].errors['maxlength']) { Maximum 20 caractères. }
+                </span>
+              }
+            </div>
+
+            <div class="form-group" [class.form-group--error]="submitted && f['age'].errors">
+              <label for="age">Âge</label>
+              <input id="age" type="number" formControlName="age" placeholder="18" min="13" max="99" />
+              @if (submitted && f['age'].errors) {
+                <span class="form-error">
+                  @if (f['age'].errors['required']) { L'âge est requis. }
+                  @else if (f['age'].errors['min']) { Tu dois avoir au moins 13 ans. }
+                  @else if (f['age'].errors['max']) { Âge invalide. }
+                </span>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION : Connexion -->
+        <div class="form-section">
+          <h2 class="form-section__title">Connexion</h2>
+
+          <div class="form-group" [class.form-group--error]="submitted && f['email'].errors">
+            <label for="email">Adresse email</label>
+            <input id="email" type="email" formControlName="email" placeholder="lucas@example.com" autocomplete="email" />
+            @if (submitted && f['email'].errors) {
+              <span class="form-error">
+                @if (f['email'].errors['required']) { L'email est requis. }
+                @else if (f['email'].errors['email']) { Adresse email invalide. }
+              </span>
+            }
+          </div>
+
+          <div class="form-row">
+            <div class="form-group" [class.form-group--error]="submitted && f['password'].errors">
+              <label for="password">Mot de passe</label>
+              <div class="input-suffix-wrapper">
+                <input
+                  id="password"
+                  [type]="showPassword ? 'text' : 'password'"
+                  formControlName="password"
+                  placeholder="8 caractères minimum"
+                  autocomplete="new-password"
+                />
+                <button type="button" class="toggle-pw" (click)="showPassword = !showPassword">
+                  {{ showPassword ? '🙈' : '👁️' }}
+                </button>
+              </div>
+              @if (submitted && f['password'].errors) {
+                <span class="form-error">
+                  @if (f['password'].errors['required']) { Le mot de passe est requis. }
+                  @else if (f['password'].errors['minlength']) { Minimum 8 caractères. }
+                </span>
+              }
+            </div>
+
+            <div class="form-group" [class.form-group--error]="submitted && (f['confirmPassword'].errors || passwordMismatch)">
+              <label for="confirmPassword">Confirmer</label>
+              <div class="input-suffix-wrapper">
+                <input
+                  id="confirmPassword"
+                  [type]="showConfirm ? 'text' : 'password'"
+                  formControlName="confirmPassword"
+                  placeholder="Répète ton mot de passe"
+                  autocomplete="new-password"
+                />
+                <button type="button" class="toggle-pw" (click)="showConfirm = !showConfirm">
+                  {{ showConfirm ? '🙈' : '👁️' }}
+                </button>
+              </div>
+              @if (submitted && f['confirmPassword'].errors) {
+                <span class="form-error">Confirmation requise.</span>
+              } @else if (passwordMismatch) {
+                <span class="form-error">Les mots de passe ne correspondent pas.</span>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION : Profil -->
+        <div class="form-section">
+          <h2 class="form-section__title">Profil <span class="optional">optionnel</span></h2>
+
+          <div class="form-group">
+            <label for="avatarUrl">Photo de profil (URL)</label>
+            <div class="avatar-row">
+              <div class="avatar-preview">
+                @if (f['avatarUrl'].value) {
+                  <img [src]="f['avatarUrl'].value" alt="Avatar" (error)="f['avatarUrl'].setValue('')" />
+                } @else {
+                  <span class="avatar-placeholder">🎮</span>
+                }
+              </div>
+              <input id="avatarUrl" type="url" formControlName="avatarUrl" placeholder="https://..." />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Jeux favoris</label>
+            <div class="games-grid">
+              @for (game of games; track game.id) {
+                <button
+                  type="button"
+                  class="game-tag"
+                  [class.game-tag--selected]="selectedGames.has(game.id)"
+                  (click)="toggleGame(game.id)"
+                >
+                  <span>{{ game.icon }}</span>
+                  <span>{{ game.label }}</span>
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+
+        @if (errorMessage) {
+          <div class="form-error-banner">
+            <span>⚠️</span> {{ errorMessage }}
+          </div>
+        }
+
+        <button type="submit" class="btn btn--primary btn--full" [disabled]="loading">
+          @if (loading) {
+            <span class="btn-spinner"></span> Création en cours…
+          } @else {
+            Créer mon compte
+          }
+        </button>
+
+      </form>
+
+      <p class="register-card__login">
+        Déjà un compte ? <a routerLink="/">Se connecter</a>
+      </p>
+    }
+  </div>
+</div>

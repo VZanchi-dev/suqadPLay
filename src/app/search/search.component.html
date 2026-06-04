@@ -1,0 +1,223 @@
+<div class="page">
+  <app-navbar></app-navbar>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="page-header__inner">
+      <h1 class="page-header__title">Trouver une session</h1>
+      <p class="page-header__sub">
+        @if (loading()) {
+          Chargement des sessions...
+        } @else {
+          {{ sessions().length }} session{{ sessions().length > 1 ? 's' : '' }} disponible{{ sessions().length > 1 ? 's' : '' }} en ce moment
+        }
+      </p>
+      <div class="search-bar">
+        <span class="search-bar__icon">🔍</span>
+        <input
+          class="search-bar__input"
+          type="text"
+          placeholder="Rechercher un jeu ou un joueur..."
+          [value]="filters().search"
+          (input)="updateSearch($any($event.target).value)"
+        />
+        @if (filters().search) {
+          <button class="search-bar__clear" (click)="updateSearch('')">✕</button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- LAYOUT -->
+  <div class="layout">
+
+    <!-- SIDEBAR FILTRES -->
+    <aside class="sidebar">
+      <div class="sidebar__header">
+        <span class="sidebar__title">Filtres</span>
+        @if (activeFilterCount() > 0) {
+          <button class="sidebar__reset" (click)="resetFilters()">
+            Réinitialiser ({{ activeFilterCount() }})
+          </button>
+        }
+      </div>
+
+      <!-- Tranche d'âge -->
+      <div class="filter-group">
+        <h3 class="filter-group__label"><span>👥</span> Tranche d'âge</h3>
+        <div class="filter-group__options">
+          @for (age of AGE_RANGES; track age) {
+            <button class="filter-chip" [class.active]="isActive('ageRanges', age)" (click)="toggleFilter('ageRanges', age)">
+              {{ age }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Catégorie -->
+      <div class="filter-group">
+        <h3 class="filter-group__label"><span>🎮</span> Catégorie</h3>
+        <div class="filter-group__options">
+          @for (cat of CATEGORIES; track cat) {
+            <button class="filter-chip" [class.active]="isActive('categories', cat)" (click)="toggleFilter('categories', cat)">
+              {{ cat }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Niveau -->
+      <div class="filter-group">
+        <h3 class="filter-group__label"><span>🏆</span> Niveau</h3>
+        <div class="filter-group__options">
+          @for (lvl of LEVELS; track lvl) {
+            <button
+              class="filter-chip"
+              [class]="'filter-chip level-' + getLevelColor(lvl)"
+              [class.active]="isActive('levels', lvl)"
+              (click)="toggleFilter('levels', lvl)"
+            >{{ lvl }}</button>
+          }
+        </div>
+      </div>
+
+      <!-- Langue -->
+      <div class="filter-group">
+        <h3 class="filter-group__label"><span>🌍</span> Langue</h3>
+        <div class="filter-group__options">
+          @for (lang of LANGUAGES_DISPLAY; track lang) {
+            <button class="filter-chip" [class.active]="isActive('languages', lang)" (click)="toggleFilter('languages', lang)">
+              {{ lang }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Discord -->
+      <div class="filter-group">
+        <h3 class="filter-group__label"><span>🎙️</span> Discord</h3>
+        <button class="discord-toggle" [class.active]="filters().discordOnly" (click)="toggleDiscord()">
+          <span class="discord-toggle__icon">
+            <svg width="16" height="12" viewBox="0 0 71 55" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M60.1 4.9A58.5 58.5 0 0 0 45.5.4a.2.2 0 0 0-.2.1 40.9 40.9 0 0 0-1.8 3.7 54 54 0 0 0-16.2 0A37.6 37.6 0 0 0 25.5.5a.2.2 0 0 0-.2-.1A58.4 58.4 0 0 0 10.7 4.9a.2.2 0 0 0-.1.1C1.6 18.1-.9 31 .3 43.6a.2.2 0 0 0 .1.2 58.8 58.8 0 0 0 17.7 8.9.2.2 0 0 0 .2-.1 42 42 0 0 0 3.6-5.9.2.2 0 0 0-.1-.3 38.7 38.7 0 0 1-5.5-2.6.2.2 0 0 1 0-.4l1.1-.8a.2.2 0 0 1 .2 0c11.5 5.3 24 5.3 35.4 0a.2.2 0 0 1 .2 0l1.1.8a.2.2 0 0 1 0 .4 36.1 36.1 0 0 1-5.5 2.6.2.2 0 0 0-.1.3 47 47 0 0 0 3.6 5.9.2.2 0 0 0 .2.1 58.6 58.6 0 0 0 17.7-8.9.2.2 0 0 0 .1-.2c1.5-15.1-2.5-28.2-10.6-39.8a.2.2 0 0 0-.1 0ZM23.7 35.8c-3.5 0-6.4-3.2-6.4-7.1s2.8-7.1 6.4-7.1c3.6 0 6.5 3.2 6.4 7.1 0 3.9-2.8 7.1-6.4 7.1Zm23.6 0c-3.5 0-6.4-3.2-6.4-7.1s2.8-7.1 6.4-7.1c3.6 0 6.5 3.2 6.4 7.1 0 3.9-2.8 7.1-6.4 7.1Z"/>
+            </svg>
+          </span>
+          <span>Discord uniquement</span>
+          <span class="discord-toggle__indicator" [class.on]="filters().discordOnly"></span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- RÉSULTATS -->
+    <main class="results">
+
+      <!-- Erreur -->
+      @if (error()) {
+        <div class="error-state">
+          <span>⚠️</span>
+          <p>{{ error() }}</p>
+          <button class="btn-retry" (click)="resetFilters()">Réessayer</button>
+        </div>
+      }
+
+      <!-- Skeletons de chargement -->
+      @if (loading() && !error()) {
+        @for (i of [1,2,3,4,5]; track i) {
+          <div class="session-card session-card--skeleton">
+            <div class="skeleton skeleton--title"></div>
+            <div class="skeleton skeleton--text"></div>
+            <div class="skeleton skeleton--text skeleton--short"></div>
+            <div class="skeleton skeleton--footer"></div>
+          </div>
+        }
+      }
+
+      <!-- Aucun résultat -->
+      @if (!loading() && !error() && sessions().length === 0) {
+        <div class="empty-state">
+          <span class="empty-state__icon">🔎</span>
+          <h3>Aucune session trouvée</h3>
+          <p>Essaie de modifier tes filtres ou
+            <button class="link-btn" (click)="resetFilters()">réinitialise la recherche</button>.
+          </p>
+        </div>
+      }
+
+      <!-- Cards sessions -->
+      @if (!loading() && !error()) {
+        @for (session of sessions(); track trackById($index, session)) {
+          <div class="session-card">
+
+            <!-- Header -->
+            <div class="session-card__header">
+              <div class="session-card__game">
+                <span class="game-emoji">{{ session.game?.emoji ?? '🎮' }}</span>
+                <div>
+                  <div class="game-name">{{ session.game?.name ?? '—' }}</div>
+                  <span class="category-tag">{{ session.game?.category ?? '' }}</span>
+                </div>
+              </div>
+              <div class="session-card__badges">
+                @if (session.discord_required) {
+                  <span class="badge badge--discord">🎙️ Discord</span>
+                }
+                <span class="badge" [class]="'badge--level-' + getLevelColor(session.level_required)">
+                  {{ session.level_required }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <p class="session-card__desc">{{ session.description }}</p>
+
+            <!-- Méta -->
+            <div class="session-card__meta">
+              <div class="meta-item">
+                <span class="meta-icon">👥</span>
+                <span>{{ session.age_range }}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-icon">🌍</span>
+                <span>{{ displayLanguages(session.languages) }}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-icon">🕒</span>
+                <span>{{ formatTime(session.created_at) }}</span>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="session-card__footer">
+              <div class="session-card__host">
+                <span class="host-avatar">{{ session.host?.avatar_emoji ?? '🎮' }}</span>
+                <div>
+                  <div class="host-name">{{ session.host?.username ?? 'Joueur' }}</div>
+                  <div class="host-label">Organisateur</div>
+                </div>
+              </div>
+
+              <div class="session-card__slots">
+                <div class="slots-bar">
+                  @for (i of [].constructor(session.players_max); track $index) {
+                    <div class="slot-dot" [class.filled]="$index < playersCount(session)"></div>
+                  }
+                </div>
+                <span class="slots-text">{{ playersCount(session) }}/{{ session.players_max }} joueurs</span>
+              </div>
+
+              <button
+                class="btn-join"
+                [class.full]="session.status === 'full'"
+                [disabled]="session.status === 'full'"
+              >
+                {{ session.status === 'full' ? 'Complet' : 'Rejoindre' }}
+              </button>
+            </div>
+
+          </div>
+        }
+      }
+
+    </main>
+  </div>
+</div>

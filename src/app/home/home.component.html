@@ -1,0 +1,195 @@
+<div class="page">
+
+  <app-navbar></app-navbar>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero__bg-blur hero__bg-blur--1"></div>
+    <div class="hero__bg-blur hero__bg-blur--2"></div>
+    <div class="hero__content">
+      <span class="hero__badge">🎮 La plateforme gaming #1 en France</span>
+      <h1 class="hero__title">
+        Trouve tes <span class="gradient-text">coéquipiers</span><br />
+        et joue ensemble
+      </h1>
+      <p class="hero__subtitle">
+        SquadPlay connecte les joueurs PC du monde entier. Rejoins des sessions, forme ta team et vis des aventures gaming inoubliables.
+      </p>
+      <div class="hero__ctas">
+        <button class="btn btn--primary btn--lg">Commencer gratuitement</button>
+        <a routerLink="/recherche" class="btn btn--outline btn--lg">Voir les sessions</a>
+      </div>
+      <div class="hero__stats">
+        <div class="stat">
+          <span class="stat__number">50k+</span>
+          <span class="stat__label">Joueurs actifs</span>
+        </div>
+        <div class="stat__divider"></div>
+        <div class="stat">
+          <span class="stat__number">200+</span>
+          <span class="stat__label">Jeux disponibles</span>
+        </div>
+        <div class="stat__divider"></div>
+        <div class="stat">
+          <span class="stat__number">10k+</span>
+          <span class="stat__label">Sessions / jour</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero__visual">
+      <div class="game-card-preview">
+        <div class="gcp__header">
+          <span class="gcp__dot gcp__dot--red"></span>
+          <span class="gcp__dot gcp__dot--yellow"></span>
+          <span class="gcp__dot gcp__dot--green"></span>
+          <span class="gcp__title">Session en cours</span>
+        </div>
+        <div class="gcp__game">⚔️ League of Legends</div>
+        <div class="gcp__info">
+          <span class="gcp__rank">Gold II</span>
+          <span class="gcp__mode">5v5 Ranked</span>
+        </div>
+        <div class="gcp__players">
+          <div class="player-slot player-slot--filled">
+            <span class="player-avatar">🐺</span>
+            <span class="player-name">ShadowWolf</span>
+            <span class="player-role">Top</span>
+          </div>
+          <div class="player-slot player-slot--filled">
+            <span class="player-avatar">🦊</span>
+            <span class="player-name">FoxFire</span>
+            <span class="player-role">Jungle</span>
+          </div>
+          <div class="player-slot player-slot--filled">
+            <span class="player-avatar">🦁</span>
+            <span class="player-name">LionHeart</span>
+            <span class="player-role">Mid</span>
+          </div>
+          <div class="player-slot player-slot--empty">
+            <span class="player-avatar">?</span>
+            <span class="player-name">En attente...</span>
+            <span class="player-role">Bot</span>
+          </div>
+          <div class="player-slot player-slot--empty">
+            <span class="player-avatar">?</span>
+            <span class="player-name">En attente...</span>
+            <span class="player-role">Support</span>
+          </div>
+        </div>
+        <button class="gcp__join">Rejoindre la session</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features">
+    <div class="section-inner">
+      <div class="section-header">
+        <span class="section-tag">Fonctionnalités</span>
+        <h2 class="section-title">Tout ce qu'il te faut pour jouer en équipe</h2>
+        <p class="section-subtitle">Une plateforme pensée par des gamers, pour des gamers.</p>
+      </div>
+      <div class="features__grid">
+        @for (feature of features; track feature.title) {
+          <div class="feature-card">
+            <div class="feature-card__icon">{{ feature.icon }}</div>
+            <h3 class="feature-card__title">{{ feature.title }}</h3>
+            <p class="feature-card__desc">{{ feature.description }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- GAMES -->
+  <section class="games">
+    <div class="section-inner">
+      <div class="section-header">
+        <span class="section-tag">Jeux populaires</span>
+        <h2 class="section-title">Les jeux les plus actifs en ce moment</h2>
+      </div>
+      <div class="games__grid">
+        @for (game of games; track game.name) {
+          <div class="game-card">
+            <div class="game-card__emoji">{{ game.image }}</div>
+            <div class="game-card__info">
+              <h4 class="game-card__name">{{ game.name }}</h4>
+              <span class="game-card__genre">{{ game.genre }}</span>
+            </div>
+            <div class="game-card__players">
+              <span class="online-dot"></span>
+              {{ game.players }} joueurs
+            </div>
+          </div>
+        }
+      </div>
+      <div class="games__more">
+        <button class="btn btn--outline">Voir tous les jeux</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how-it-works">
+    <div class="section-inner">
+      <div class="section-header">
+        <span class="section-tag">Comment ça marche</span>
+        <h2 class="section-title">Jouer ensemble en 3 étapes simples</h2>
+      </div>
+      <div class="steps">
+        @for (step of steps; track step.number) {
+          <div class="step">
+            <div class="step__number">{{ step.number }}</div>
+            <h3 class="step__title">{{ step.title }}</h3>
+            <p class="step__desc">{{ step.description }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA BANNER -->
+  <section class="cta-banner">
+    <div class="cta-banner__blur"></div>
+    <div class="cta-banner__content">
+      <h2>Prêt à trouver ta team ?</h2>
+      <p>Rejoins des milliers de joueurs et ne rate plus jamais une session epic.</p>
+      <button class="btn btn--primary btn--lg">Créer mon compte gratuit</button>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">SquadPlay</span>
+        <p>La plateforme qui connecte les gamers PC.</p>
+      </div>
+      <div class="footer__links">
+        <div class="footer__col">
+          <h4>Plateforme</h4>
+          <a href="#">Trouver une session</a>
+          <a href="#">Créer une session</a>
+          <a href="#">Classement</a>
+        </div>
+        <div class="footer__col">
+          <h4>Jeux</h4>
+          <a href="#">FPS</a>
+          <a href="#">MOBA</a>
+          <a href="#">Battle Royale</a>
+        </div>
+        <div class="footer__col">
+          <h4>Entreprise</h4>
+          <a href="#">À propos</a>
+          <a href="#">Contact</a>
+          <a href="#">CGU</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span>© 2026 SquadPlay. Tous droits réservés.</span>
+    </div>
+  </footer>
+
+</div>

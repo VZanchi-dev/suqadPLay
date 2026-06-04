@@ -1,0 +1,61 @@
+<nav class="navbar">
+  <div class="navbar__inner">
+    <a class="navbar__logo" routerLink="/">
+      <span class="logo-icon">⚡</span>
+      <span class="logo-text">SquadPlay</span>
+    </a>
+
+    <ul class="navbar__links">
+      <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Accueil</a></li>
+      <li><a routerLink="/recherche" routerLinkActive="active">Rechercher</a></li>
+      <li><a href="#">Joueurs</a></li>
+      <li><a href="#">Événements</a></li>
+    </ul>
+
+    <div class="navbar__actions">
+      @if (user) {
+        <!-- Connecté : menu Mon compte -->
+        <div class="user-menu" [class.user-menu--open]="menuOpen">
+          <button class="user-menu__trigger" (click)="toggleMenu()">
+            @if (avatar) {
+              <img class="user-menu__avatar" [src]="avatar" alt="avatar" />
+            } @else {
+              <span class="user-menu__initials">{{ initials }}</span>
+            }
+            <span class="user-menu__pseudo">{{ pseudo }}</span>
+            <svg class="user-menu__chevron" viewBox="0 0 16 16" fill="none">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+
+          @if (menuOpen) {
+            <div class="user-menu__dropdown">
+              <div class="user-menu__info">
+                <span class="user-menu__name">{{ pseudo }}</span>
+                <span class="user-menu__email">{{ user.email }}</span>
+              </div>
+              <div class="user-menu__divider"></div>
+              <a href="#" class="user-menu__item">
+                <span>👤</span> Mon profil
+              </a>
+              <a href="#" class="user-menu__item">
+                <span>🎮</span> Mes sessions
+              </a>
+              <a href="#" class="user-menu__item">
+                <span>⚙️</span> Paramètres
+              </a>
+              <div class="user-menu__divider"></div>
+              <button class="user-menu__item user-menu__item--danger" (click)="signOut()">
+                <span>🚪</span> Se déconnecter
+              </button>
+            </div>
+          }
+        </div>
+      } @else {
+        <!-- Non connecté : login / inscription -->
+        <button class="btn btn--ghost">Se connecter</button>
+        <a routerLink="/inscription" class="btn btn--primary">S'inscrire</a>
+      }
+    </div>
+  </div>
+</nav>
