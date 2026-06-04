@@ -1,0 +1,312 @@
+$purple: #6c63ff;
+$purple-dark: #5a52d5;
+$bg: #0d0f1a;
+$surface: #13152a;
+$border: rgba(255, 255, 255, 0.08);
+$text: #f1f5f9;
+$muted: #94a3b8;
+
+.page { min-height: 100vh; background: $bg; }
+
+.cs-page {
+  position: relative;
+  padding: 2.5rem 1rem 5rem;
+  overflow: hidden;
+
+  &__bg-blur {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.1;
+    pointer-events: none;
+
+    &--1 { width: 500px; height: 500px; background: $purple;  top: -100px; left: -100px; }
+    &--2 { width: 400px; height: 400px; background: #00d4ff; bottom: -80px; right: -80px; }
+  }
+}
+
+.cs-container {
+  max-width: 700px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* Header */
+.cs-back {
+  display: inline-block;
+  color: $muted;
+  font-size: 0.875rem;
+  margin-bottom: 1.25rem;
+  text-decoration: none;
+  transition: color 0.2s;
+  &:hover { color: $text; }
+}
+
+.cs-header {
+  margin-bottom: 2rem;
+
+  &__title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: $text;
+    margin-bottom: 0.4rem;
+  }
+
+  &__sub { color: $muted; font-size: 0.95rem; }
+}
+
+/* Form */
+.cs-form { display: flex; flex-direction: column; gap: 1.25rem; }
+
+/* Cards */
+.cs-card {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 16px;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: $text;
+    margin: 0;
+  }
+
+  &__num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, $purple, #a78bfa);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #fff;
+    flex-shrink: 0;
+  }
+}
+
+/* Games grid */
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.75rem;
+}
+
+.game-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 1rem 0.5rem;
+  background: $bg;
+  border: 2px solid $border;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.18s;
+  font-family: inherit;
+
+  &:hover { border-color: rgba($purple, 0.4); transform: translateY(-2px); }
+
+  &--selected {
+    border-color: $purple;
+    background: rgba($purple, 0.12);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba($purple, 0.2);
+  }
+
+  &__emoji { font-size: 1.75rem; }
+  &__name  { font-size: 0.78rem; font-weight: 700; color: $text; text-align: center; }
+  &__cat   { font-size: 0.68rem; color: $muted; }
+}
+
+/* Form groups */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+
+  textarea {
+    background: $bg;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    color: $text;
+    font-size: 0.9rem;
+    font-family: inherit;
+    outline: none;
+    resize: vertical;
+    transition: border-color 0.2s;
+    &::placeholder { color: #475569; }
+    &:focus { border-color: $purple; }
+  }
+
+  &--error textarea { border-color: #f87171; }
+}
+
+.form-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.char-count {
+  font-size: 0.75rem;
+  color: $muted;
+  text-align: right;
+  &--warn { color: #f59e0b; }
+}
+
+/* Chips */
+.chips-row, .players-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+.chip {
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  background: $bg;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: $muted;
+  font-size: 0.82rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.18s;
+
+  &:hover { border-color: rgba($purple, 0.4); color: $text; }
+
+  &--on {
+    background: rgba($purple, 0.18);
+    border-color: $purple;
+    color: $text;
+    font-weight: 600;
+  }
+
+  &--num { min-width: 44px; text-align: center; font-weight: 700; }
+
+  &--green.chip--on  { background: rgba(34, 197, 94, 0.15);  border-color: #22c55e; color: #4ade80; }
+  &--blue.chip--on   { background: rgba(59, 130, 246, 0.15); border-color: #3b82f6; color: #60a5fa; }
+  &--purple.chip--on { background: rgba($purple, 0.18);      border-color: $purple; color: #a78bfa; }
+  &--gold.chip--on   { background: rgba(245, 158, 11, 0.15); border-color: #f59e0b; color: #fbbf24; }
+}
+
+/* Discord toggle */
+.discord-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: $bg;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  color: $muted;
+  font-size: 0.875rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: fit-content;
+
+  &--on {
+    border-color: #5865f2;
+    color: #a5b4fc;
+    background: rgba(88, 101, 242, 0.1);
+  }
+
+  &__dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+
+  &--on &__dot { background: #5865f2; box-shadow: 0 0 6px rgba(88,101,242,0.5); }
+}
+
+/* Récap */
+.cs-recap {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  background: rgba($purple, 0.08);
+  border: 1px solid rgba($purple, 0.2);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: $text;
+
+  &__game { font-weight: 700; }
+  &__sep  { color: $muted; }
+}
+
+/* Error banner */
+.form-error-banner {
+  background: rgba(248,113,113,0.1);
+  border: 1px solid rgba(248,113,113,0.3);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  color: #f87171;
+  font-size: 0.875rem;
+}
+
+.field-error {
+  font-size: 0.78rem;
+  color: #f87171;
+}
+
+/* Actions */
+.cs-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  text-decoration: none;
+
+  &--primary {
+    background: linear-gradient(135deg, $purple, $purple-dark);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba($purple, 0.35);
+    &:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba($purple, 0.5); }
+    &:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+  }
+
+  &--ghost {
+    background: transparent;
+    color: $muted;
+    &:hover { color: $text; }
+  }
+}
+
+.btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

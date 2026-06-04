@@ -2,7 +2,17 @@ import { Injectable, inject } from '@angular/core';
 import { from, Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { SupabaseService } from './supabase.service';
-import { Session, SessionFilters } from '../types/database.types';
+import { Session, SessionFilters, Game, PlayerLevel, AgeRange, Language } from '../types/database.types';
+
+export interface CreateSessionDto {
+  game_id: string;
+  description: string;
+  level_required: PlayerLevel;
+  age_range: AgeRange;
+  languages: Language[];
+  discord_required: boolean;
+  players_max: number;
+}
 
 @Injectable({ providedIn: 'root' })
 export class SessionService {
@@ -66,6 +76,30 @@ export class SessionService {
         console.error('Erreur getSessions:', err);
         return of([]);
       })
+    );
+  }
+
+  getGames(): Observable<Game[]> {
+    if (!this.supabase.isBrowser) return of([]);
+    return from(
+      this.supabase.client.from('games').select('*').order('name')
+    ).pipe(
+      map(({ data, error }) => { if (error) throw error; return (data as Game[]) ?? []; }),
+      catchError(() => of([]))
+    );
+  }
+
+  createSession(dto: CreateSessionDto, hostId: string): Observable<Session | null> {
+    if (!this.supabase.isBrowser) return of(null);
+    return from(
+      this.supabase.client
+        .from('sessions')
+        .insert({ ...dto, host_id: hostId, status: 'open' } as any)
+        .select('*, game:games(*), host:profiles!host_id(*)')
+        .single()
+    ).pipe(
+      map(({ data, error }) => { if (error) throw error; return data as Session; }),
+      catchError(err => { console.error('Erreur createSession:', err); return of(null); })
     );
   }
 

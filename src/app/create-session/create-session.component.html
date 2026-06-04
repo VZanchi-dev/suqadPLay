@@ -1,0 +1,195 @@
+<div class="page">
+  <app-navbar></app-navbar>
+
+  <div class="cs-page">
+    <div class="cs-page__bg-blur cs-page__bg-blur--1"></div>
+    <div class="cs-page__bg-blur cs-page__bg-blur--2"></div>
+
+    <div class="cs-container">
+
+      <!-- HEADER -->
+      <div class="cs-header">
+        <a routerLink="/recherche" class="cs-back">← Retour</a>
+        <h1 class="cs-header__title">Créer une session</h1>
+        <p class="cs-header__sub">Configure ta session et trouve des coéquipiers en quelques secondes.</p>
+      </div>
+
+      <form class="cs-form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+        <!-- SECTION 1 : Jeu -->
+        <div class="cs-card">
+          <h2 class="cs-card__title">
+            <span class="cs-card__num">1</span> Choisis ton jeu
+          </h2>
+
+          <div class="games-grid">
+            @for (game of games; track game.id) {
+              <button
+                type="button"
+                class="game-card"
+                [class.game-card--selected]="selectedGame?.id === game.id"
+                (click)="selectGame(game)"
+              >
+                <span class="game-card__emoji">{{ game.emoji }}</span>
+                <span class="game-card__name">{{ game.name }}</span>
+                <span class="game-card__cat">{{ game.category }}</span>
+              </button>
+            }
+          </div>
+
+          @if (submitted && !selectedGame) {
+            <span class="field-error">Choisis un jeu pour continuer.</span>
+          }
+        </div>
+
+        <!-- SECTION 2 : Description -->
+        <div class="cs-card">
+          <h2 class="cs-card__title">
+            <span class="cs-card__num">2</span> Décris ta session
+          </h2>
+
+          <div class="form-group" [class.form-group--error]="submitted && f['description'].errors">
+            <textarea
+              formControlName="description"
+              rows="4"
+              placeholder="Ex : Je cherche 2 joueurs pour ranked, bonne ambiance, micro obligatoire..."
+              maxlength="300"
+            ></textarea>
+            <div class="char-count" [class.char-count--warn]="descLength > 260">
+              {{ descLength }}/300
+            </div>
+            @if (submitted && f['description'].errors) {
+              <span class="field-error">
+                @if (f['description'].errors['required']) { La description est requise. }
+                @else if (f['description'].errors['minlength']) { Minimum 10 caractères. }
+              </span>
+            }
+          </div>
+        </div>
+
+        <!-- SECTION 3 : Paramètres -->
+        <div class="cs-card">
+          <h2 class="cs-card__title">
+            <span class="cs-card__num">3</span> Paramètres
+          </h2>
+
+          <!-- Niveau -->
+          <div class="form-group" [class.form-group--error]="submitted && f['level_required'].errors">
+            <label class="form-label">Niveau requis</label>
+            <div class="chips-row">
+              @for (lvl of levels; track lvl) {
+                <button
+                  type="button"
+                  class="chip chip--level"
+                  [class]="'chip chip--level chip--' + levelColor(lvl)"
+                  [class.chip--on]="form.value.level_required === lvl"
+                  (click)="form.patchValue({ level_required: lvl })"
+                >{{ lvl }}</button>
+              }
+            </div>
+            @if (submitted && f['level_required'].errors) {
+              <span class="field-error">Sélectionne un niveau.</span>
+            }
+          </div>
+
+          <!-- Tranche d'âge -->
+          <div class="form-group" [class.form-group--error]="submitted && f['age_range'].errors">
+            <label class="form-label">Tranche d'âge</label>
+            <div class="chips-row">
+              @for (ar of ageRanges; track ar) {
+                <button
+                  type="button"
+                  class="chip"
+                  [class.chip--on]="form.value.age_range === ar"
+                  (click)="form.patchValue({ age_range: ar })"
+                >{{ ar }}</button>
+              }
+            </div>
+            @if (submitted && f['age_range'].errors) {
+              <span class="field-error">Sélectionne une tranche d'âge.</span>
+            }
+          </div>
+
+          <!-- Langues -->
+          <div class="form-group">
+            <label class="form-label">Langues</label>
+            <div class="chips-row">
+              @for (lang of languages; track lang) {
+                <button
+                  type="button"
+                  class="chip"
+                  [class.chip--on]="selectedLanguages.has(lang)"
+                  (click)="toggleLanguage(lang)"
+                >{{ lang }}</button>
+              }
+            </div>
+            @if (submitted && selectedLanguages.size === 0) {
+              <span class="field-error">Sélectionne au moins une langue.</span>
+            }
+          </div>
+
+          <!-- Nombre de joueurs -->
+          <div class="form-group">
+            <label class="form-label">Nombre de joueurs max</label>
+            <div class="players-row">
+              @for (n of [2,3,4,5,6,8,10]; track n) {
+                <button
+                  type="button"
+                  class="chip chip--num"
+                  [class.chip--on]="form.value.players_max === n"
+                  (click)="form.patchValue({ players_max: n })"
+                >{{ n }}</button>
+              }
+            </div>
+          </div>
+
+          <!-- Discord -->
+          <div class="form-group">
+            <label class="form-label">Discord requis ?</label>
+            <button
+              type="button"
+              class="discord-toggle"
+              [class.discord-toggle--on]="form.value.discord_required"
+              (click)="form.patchValue({ discord_required: !form.value.discord_required })"
+            >
+              <span class="discord-toggle__dot"></span>
+              <span>{{ form.value.discord_required ? 'Oui, Discord obligatoire' : 'Non, pas obligatoire' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- RÉCAP + ERREUR + SUBMIT -->
+        @if (selectedGame) {
+          <div class="cs-recap">
+            <span class="cs-recap__game">{{ selectedGame.emoji }} {{ selectedGame.name }}</span>
+            @if (form.value.level_required) {
+              <span class="cs-recap__sep">·</span>
+              <span>{{ form.value.level_required }}</span>
+            }
+            @if (form.value.players_max) {
+              <span class="cs-recap__sep">·</span>
+              <span>{{ form.value.players_max }} joueurs max</span>
+            }
+            @if (form.value.discord_required) {
+              <span class="cs-recap__sep">·</span>
+              <span>🎙️ Discord</span>
+            }
+          </div>
+        }
+
+        @if (errorMsg) {
+          <div class="form-error-banner">⚠️ {{ errorMsg }}</div>
+        }
+
+        <div class="cs-actions">
+          <a routerLink="/recherche" class="btn btn--ghost">Annuler</a>
+          <button type="submit" class="btn btn--primary" [disabled]="saving">
+            @if (saving) { <span class="btn-spinner"></span> Création… }
+            @else { 🚀 Publier la session }
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
