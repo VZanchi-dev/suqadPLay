@@ -11,6 +11,7 @@ export interface CreateSessionDto {
   age_range: AgeRange;
   languages: Language[];
   discord_required: boolean;
+  discord_invite: string | null;
   players_max: number;
 }
 

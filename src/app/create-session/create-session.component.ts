@@ -57,7 +57,20 @@ export class CreateSessionComponent implements OnInit {
       level_required:   ['', [Validators.required]],
       age_range:        ['', [Validators.required]],
       discord_required: [false],
+      discord_invite:   [''],
       players_max:      [4, [Validators.required, Validators.min(2), Validators.max(10)]],
+    });
+
+    // Rend le lien obligatoire si Discord est requis
+    this.form.get('discord_required')!.valueChanges.subscribe((required: boolean) => {
+      const ctrl = this.form.get('discord_invite')!;
+      if (required) {
+        ctrl.setValidators([Validators.required, Validators.minLength(2)]);
+      } else {
+        ctrl.clearValidators();
+        ctrl.setValue('');
+      }
+      ctrl.updateValueAndValidity();
     });
   }
 
@@ -93,6 +106,7 @@ export class CreateSessionComponent implements OnInit {
       age_range:        v.age_range,
       languages:        Array.from(this.selectedLanguages) as Language[],
       discord_required: v.discord_required,
+      discord_invite:   v.discord_required ? `https://discord.gg/${v.discord_invite.trim()}` : null,
       players_max:      Number(v.players_max),
     }, user.id).subscribe(session => {
       this.saving = false;
