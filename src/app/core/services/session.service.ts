@@ -118,7 +118,7 @@ export class SessionService {
     return from(
       this.supabase.client
         .from('sessions')
-        .update({ status: 'closed' } as { status: 'open' | 'full' | 'closed' })
+        .update({ status: 'closed' } as never)
         .eq('id', sessionId)
     ).pipe(
       map(({ error }) => { if (error) throw error; return true; }),
