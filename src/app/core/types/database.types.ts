@@ -32,6 +32,7 @@ export interface Session {
   age_range: AgeRange;
   languages: Language[];
   discord_required: boolean;
+  discord_invite: string | null;
   players_max: number;
   status: 'open' | 'full' | 'closed';
   created_at: string;
