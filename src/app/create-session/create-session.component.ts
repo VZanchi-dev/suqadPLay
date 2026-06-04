@@ -114,12 +114,12 @@ export class CreateSessionComponent implements OnInit {
       discord_required: v.discord_required,
       discord_invite:   v.discord_required ? `https://discord.gg/${v.discord_invite.trim()}` : null,
       players_max:      Number(v.players_max),
-    }, user.id).subscribe(session => {
+    }, user.id).subscribe(({ session, error }) => {
       this.saving = false;
       if (session) {
         this.router.navigate(['/recherche']);
       } else {
-        this.errorMsg = 'Erreur lors de la création — vérifie les règles RLS dans Supabase.';
+        this.errorMsg = error ?? 'Erreur inconnue.';
       }
     });
   }

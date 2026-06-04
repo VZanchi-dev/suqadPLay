@@ -90,8 +90,8 @@ export class SessionService {
     );
   }
 
-  createSession(dto: CreateSessionDto, hostId: string): Observable<Session | null> {
-    if (!this.supabase.isBrowser) return of(null);
+  createSession(dto: CreateSessionDto, hostId: string): Observable<{ session: Session | null; error: string | null }> {
+    if (!this.supabase.isBrowser) return of({ session: null, error: 'Non disponible côté serveur' });
     return from(
       this.supabase.client
         .from('sessions')
@@ -100,16 +100,10 @@ export class SessionService {
         .single()
     ).pipe(
       map(({ data, error }) => {
-        if (error) {
-          console.error('[createSession] Supabase error:', error.message, error.details, error.hint);
-          throw error;
-        }
-        return data as Session;
+        if (error) return { session: null, error: `${error.message} — code: ${error.code}` };
+        return { session: data as Session, error: null };
       }),
-      catchError(err => {
-        console.error('[createSession] caught:', err);
-        return of(null);
-      })
+      catchError(err => of({ session: null, error: String(err?.message ?? err) }))
     );
   }
 
