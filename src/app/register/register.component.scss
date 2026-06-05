@@ -216,18 +216,22 @@
   }
 }
 
-/* Avatar */
-.avatar-row {
+/* Avatar upload */
+.avatar-upload {
   display: flex;
   align-items: center;
   gap: 1rem;
 
-  input { flex: 1; }
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
 }
 
 .avatar-preview {
-  width: 56px;
-  height: 56px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
   background: #0d0f1a;
   border: 2px solid rgba(108, 99, 255, 0.4);
@@ -236,6 +240,7 @@
   justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
+  position: relative;
 
   img {
     width: 100%;
@@ -243,9 +248,68 @@
     object-fit: cover;
   }
 
-  .avatar-placeholder {
-    font-size: 1.6rem;
+  .avatar-placeholder { font-size: 1.8rem; }
+
+  .avatar-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+    border-radius: 50%;
   }
+
+  &--clickable {
+    cursor: pointer;
+    transition: border-color 0.2s;
+
+    &:hover {
+      border-color: #6c63ff;
+
+      .avatar-overlay { opacity: 1; }
+    }
+  }
+}
+
+.btn-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  background: rgba(108, 99, 255, 0.15);
+  border: 1px solid rgba(108, 99, 255, 0.4);
+  border-radius: 8px;
+  color: #a5a0ff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.18s;
+  width: fit-content;
+
+  &:hover {
+    background: rgba(108, 99, 255, 0.28);
+    border-color: #6c63ff;
+    color: #f1f5f9;
+  }
+}
+
+.avatar-hint {
+  font-size: 0.75rem;
+  color: #475569;
+}
+
+.avatar-filename {
+  font-size: 0.75rem;
+  color: #6c63ff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
 }
 
 /* Games */

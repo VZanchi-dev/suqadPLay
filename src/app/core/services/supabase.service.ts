@@ -23,11 +23,25 @@ export class SupabaseService {
     return isPlatformBrowser(this.platformId);
   }
 
+  uploadAvatar(blob: Blob, extension: string) {
+    const fileName = `${crypto.randomUUID()}.${extension}`;
+    return this.client.storage.from('avatars').upload(fileName, blob, {
+      contentType: `image/${extension}`,
+      upsert: false
+    }).then(({ data, error }) => {
+      if (error || !data) return null;
+      return this.client.storage.from('avatars').getPublicUrl(data.path).data.publicUrl;
+    });
+  }
+
   signUp(email: string, password: string, metadata: Record<string, unknown>) {
     return this.client.auth.signUp({
       email,
       password,
-      options: { data: metadata }
+      options: {
+        data: metadata,
+        emailRedirectTo: environment.appUrl
+      }
     });
   }
 }

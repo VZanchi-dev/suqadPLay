@@ -153,17 +153,36 @@
           <h2 class="form-section__title">Profil <span class="optional">optionnel</span></h2>
 
           <div class="form-group">
-            <label for="avatarUrl">Photo de profil (URL)</label>
-            <div class="avatar-row">
-              <div class="avatar-preview">
-                @if (f['avatarUrl'].value) {
-                  <img [src]="f['avatarUrl'].value" alt="Avatar" (error)="f['avatarUrl'].setValue('')" />
+            <label>Photo de profil <span class="optional">optionnel</span></label>
+            <div class="avatar-upload">
+              <div class="avatar-preview avatar-preview--clickable" (click)="avatarInput.click()">
+                @if (avatarPreview) {
+                  <img [src]="avatarPreview" alt="Avatar" />
                 } @else {
                   <span class="avatar-placeholder">🎮</span>
                 }
+                <div class="avatar-overlay">📷</div>
               </div>
-              <input id="avatarUrl" type="url" formControlName="avatarUrl" placeholder="https://..." />
+              <div class="avatar-upload__info">
+                <button type="button" class="btn-upload" (click)="avatarInput.click()">
+                  Choisir une image
+                </button>
+                <span class="avatar-hint">JPG, PNG, WebP · 2 Mo max</span>
+                @if (avatarFile) {
+                  <span class="avatar-filename">{{ avatarFile.name }}</span>
+                }
+              </div>
             </div>
+            <input
+              #avatarInput
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              style="display:none"
+              (change)="onAvatarChange($event)"
+            />
+            @if (avatarError) {
+              <span class="form-error">{{ avatarError }}</span>
+            }
           </div>
 
           <div class="form-group">

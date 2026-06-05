@@ -42,6 +42,15 @@ export interface Session {
   players_count?: number;
 }
 
+export interface Comment {
+  id: string;
+  session_id: string;
+  author_id: string;
+  content: string;
+  created_at: string;
+  author?: Profile;
+}
+
 export interface SessionFilters {
   search: string;
   ageRanges: AgeRange[];
@@ -72,6 +81,11 @@ export interface Database {
       session_players: {
         Row: { session_id: string; player_id: string; joined_at: string };
         Insert: { session_id: string; player_id: string };
+        Update: never;
+      };
+      comments: {
+        Row: Comment;
+        Insert: Omit<Comment, 'id' | 'created_at' | 'author'>;
         Update: never;
       };
     };

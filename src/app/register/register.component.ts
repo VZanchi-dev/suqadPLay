@@ -36,6 +36,13 @@ export class RegisterComponent {
 
   selectedGames = new Set<string>();
 
+  avatarFile: File | null = null;
+  avatarPreview: string = '';
+  avatarError: string = '';
+
+  private readonly MAX_SIZE = 2 * 1024 * 1024;
+  private readonly AVATAR_PX = 200;
+
   constructor(private fb: FormBuilder, private supabase: SupabaseService) {
     this.form = this.fb.group({
       nom: ['', [Validators.required, Validators.minLength(2)]],
@@ -45,7 +52,6 @@ export class RegisterComponent {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', [Validators.required]],
-      avatarUrl: [''],
     }, { validators: passwordMatchValidator });
   }
 
@@ -53,6 +59,49 @@ export class RegisterComponent {
 
   get passwordMismatch(): boolean {
     return this.submitted && !!this.form.errors?.['passwordMismatch'] && !this.f['confirmPassword'].errors?.['required'];
+  }
+
+  onAvatarChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    this.avatarError = '';
+    this.avatarFile = null;
+    this.avatarPreview = '';
+
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      this.avatarError = 'Seules les images sont acceptées (JPG, PNG, WebP).';
+      return;
+    }
+
+    if (file.size > this.MAX_SIZE) {
+      this.avatarError = `L'image ne doit pas dépasser 2 Mo.`;
+      return;
+    }
+
+    this.avatarFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => { this.avatarPreview = e.target?.result as string; };
+    reader.readAsDataURL(file);
+  }
+
+  private resizeToBlob(dataUrl: string, ext: string): Promise<Blob> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = this.AVATAR_PX;
+        canvas.height = this.AVATAR_PX;
+        const ctx = canvas.getContext('2d')!;
+        const size = Math.min(img.width, img.height);
+        const sx = (img.width - size) / 2;
+        const sy = (img.height - size) / 2;
+        ctx.drawImage(img, sx, sy, size, size, 0, 0, this.AVATAR_PX, this.AVATAR_PX);
+        canvas.toBlob((blob) => resolve(blob!), ext === 'png' ? 'image/png' : 'image/jpeg', 0.8);
+      };
+      img.src = dataUrl;
+    });
   }
 
   toggleGame(id: string) {
@@ -71,14 +120,21 @@ export class RegisterComponent {
 
     this.loading = true;
 
-    const { nom, prenom, pseudo, age, email, password, avatarUrl } = this.form.value;
+    const { nom, prenom, pseudo, age, email, password } = this.form.value;
+
+    let avatarUrl: string | null = null;
+    if (this.avatarFile && this.avatarPreview) {
+      const ext = this.avatarFile.type === 'image/png' ? 'png' : 'jpeg';
+      const blob = await this.resizeToBlob(this.avatarPreview, ext);
+      avatarUrl = await this.supabase.uploadAvatar(blob, ext);
+    }
 
     const { error } = await this.supabase.signUp(email, password, {
       nom,
       prenom,
       pseudo,
       age: Number(age),
-      avatar_url: avatarUrl || null,
+      avatar_url: avatarUrl,
       favorite_games: Array.from(this.selectedGames),
     });
 

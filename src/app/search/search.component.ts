@@ -4,9 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { debounceTime, switchMap } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
+import { RouterLink } from '@angular/router';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { SessionService } from '../core/services/session.service';
-import { Session, AgeRange, GameCategory, PlayerLevel } from '../core/types/database.types';
+import { Session, Comment, AgeRange, GameCategory, PlayerLevel } from '../core/types/database.types';
 import { AuthService } from '../core/services/auth.service';
 
 // Mapping drapeaux ↔ valeurs BDD
@@ -38,7 +39,7 @@ interface UiFilters {
 @Component({
   selector: 'app-search',
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarComponent],
+  imports: [CommonModule, FormsModule, RouterLink, NavbarComponent],
   templateUrl: './search.component.html',
   styleUrl: './search.component.scss'
 })
@@ -67,6 +68,12 @@ export class SearchComponent implements OnDestroy {
   sessions = signal<Session[]>([]);
   loading = signal(true);
   error = signal<string | null>(null);
+
+  openPanels      = signal<Record<string, boolean>>({});
+  commentsBySession = signal<Record<string, Comment[]>>({});
+  loadingComments = signal<Record<string, boolean>>({});
+  submittingComment = signal<Record<string, boolean>>({});
+  commentInputs: Record<string, string> = {};
 
   activeFilterCount = computed(() => {
     const f = this.filters();
@@ -177,5 +184,50 @@ export class SearchComponent implements OnDestroy {
 
   trackById(_: number, session: Session) {
     return session.id;
+  }
+
+  // ─── Commentaires ────────────────────────────────────────────────────────────
+
+  isPanelOpen(id: string)        { return !!this.openPanels()[id]; }
+  getCommentsFor(id: string)     { return this.commentsBySession()[id] ?? []; }
+  isLoadingComments(id: string)  { return !!this.loadingComments()[id]; }
+  isSubmittingComment(id: string){ return !!this.submittingComment()[id]; }
+
+  toggleComments(sessionId: string) {
+    const isOpen = this.isPanelOpen(sessionId);
+    this.openPanels.update(p => ({ ...p, [sessionId]: !isOpen }));
+    if (!isOpen && !this.commentsBySession()[sessionId]) {
+      this.loadCommentsFor(sessionId);
+    }
+  }
+
+  private loadCommentsFor(sessionId: string) {
+    this.loadingComments.update(s => ({ ...s, [sessionId]: true }));
+    this.sessionService.getComments(sessionId).subscribe({
+      next: comments => {
+        this.commentsBySession.update(m => ({ ...m, [sessionId]: comments }));
+        this.loadingComments.update(s => ({ ...s, [sessionId]: false }));
+      },
+      error: () => {
+        this.commentsBySession.update(m => ({ ...m, [sessionId]: [] }));
+        this.loadingComments.update(s => ({ ...s, [sessionId]: false }));
+      }
+    });
+  }
+
+  submitComment(sessionId: string) {
+    const content = this.commentInputs[sessionId]?.trim();
+    if (!content || !this.currentUserId || this.isSubmittingComment(sessionId)) return;
+    this.submittingComment.update(s => ({ ...s, [sessionId]: true }));
+    this.sessionService.addComment(sessionId, this.currentUserId, content).subscribe({
+      next: comment => {
+        if (comment) {
+          this.commentsBySession.update(m => ({ ...m, [sessionId]: [...(m[sessionId] ?? []), comment] }));
+          this.commentInputs[sessionId] = '';
+        }
+        this.submittingComment.update(s => ({ ...s, [sessionId]: false }));
+      },
+      error: () => this.submittingComment.update(s => ({ ...s, [sessionId]: false }))
+    });
   }
 }

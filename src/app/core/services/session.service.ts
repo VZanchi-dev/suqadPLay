@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { from, Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { SupabaseService } from './supabase.service';
-import { Session, SessionFilters, Game, PlayerLevel, AgeRange, Language } from '../types/database.types';
+import { Session, SessionFilters, Comment, Game, PlayerLevel, AgeRange, Language } from '../types/database.types';
 
 export interface CreateSessionDto {
   game_id: string;
@@ -117,6 +117,34 @@ export class SessionService {
     ).pipe(
       map(({ error }) => { if (error) throw error; return true; }),
       catchError(err => { console.error('Erreur closeSession:', err); return of(false); })
+    );
+  }
+
+  getComments(sessionId: string): Observable<Comment[]> {
+    if (!this.supabase.isBrowser) return of([]);
+    return from(
+      this.supabase.client
+        .from('comments')
+        .select('*, author:profiles!author_id(*)')
+        .eq('session_id', sessionId)
+        .order('created_at', { ascending: true })
+    ).pipe(
+      map(({ data, error }) => { if (error) throw error; return (data as Comment[]) ?? []; }),
+      catchError(err => { console.error('Erreur getComments:', err); return of([]); })
+    );
+  }
+
+  addComment(sessionId: string, authorId: string, content: string): Observable<Comment | null> {
+    if (!this.supabase.isBrowser) return of(null);
+    return from(
+      this.supabase.client
+        .from('comments')
+        .insert({ session_id: sessionId, author_id: authorId, content } as any)
+        .select('*, author:profiles!author_id(*)')
+        .single()
+    ).pipe(
+      map(({ data, error }) => { if (error) throw error; return data as Comment; }),
+      catchError(err => { console.error('Erreur addComment:', err); return of(null); })
     );
   }
 
