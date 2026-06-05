@@ -15,6 +15,7 @@ export interface Profile {
   id: string;
   username: string;
   avatar_emoji: string;
+  avatar_url: string | null;
   level: PlayerLevel;
   age_range: AgeRange;
   languages: Language[];

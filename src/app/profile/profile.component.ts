@@ -162,6 +162,11 @@ export class ProfileComponent implements OnInit {
       avatarUrl = await this.supa.uploadAvatar(blob, ext) ?? resizedDataUrl;
     }
 
+    await (this.supa.client
+      .from('profiles') as any)
+      .update({ avatar_url: avatarUrl })
+      .eq('id', this.user!.id);
+
     const { error } = await this.supa.client.auth.updateUser({
       data: {
         pseudo:         v.pseudo,

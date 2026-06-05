@@ -182,6 +182,16 @@ export class SearchComponent implements OnDestroy {
     return !!this.currentUserId && session.host_id === this.currentUserId;
   }
 
+  join(session: Session) {
+    if (session.discord_invite) {
+      window.open(session.discord_invite, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    if (this.currentUserId) {
+      this.sessionService.joinSession(session.id, this.currentUserId).subscribe();
+    }
+  }
+
   trackById(_: number, session: Session) {
     return session.id;
   }

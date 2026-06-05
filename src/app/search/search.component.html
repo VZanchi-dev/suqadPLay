@@ -189,7 +189,13 @@
             <!-- Footer -->
             <div class="session-card__footer">
               <div class="session-card__host">
-                <span class="host-avatar">{{ session.host?.avatar_emoji ?? '🎮' }}</span>
+                <div class="host-avatar-wrap">
+                  @if (session.host?.avatar_url) {
+                    <img class="host-avatar-img" [src]="session.host.avatar_url" [alt]="session.host.username" />
+                  } @else {
+                    <span class="host-avatar">{{ session.host?.avatar_emoji ?? '🎮' }}</span>
+                  }
+                </div>
                 <div>
                   <div class="host-name">{{ session.host?.username ?? 'Joueur' }}</div>
                   <div class="host-label">Organisateur</div>
@@ -214,8 +220,9 @@
                   class="btn-join"
                   [class.full]="session.status === 'full'"
                   [disabled]="session.status === 'full'"
+                  (click)="join(session)"
                 >
-                  {{ session.status === 'full' ? 'Complet' : 'Rejoindre' }}
+                  {{ session.status === 'full' ? 'Complet' : (session.discord_invite ? '🎙️ Rejoindre' : 'Rejoindre') }}
                 </button>
               }
             </div>
