@@ -273,7 +273,7 @@
                       <button
                         class="btn-send"
                         (click)="submitComment(session.id)"
-                        [disabled]="isSubmittingComment(session.id) || !commentInputs[session.id]?.trim()"
+                        [disabled]="isSubmittingComment(session.id) || !(commentInputs[session.id] || '').trim()"
                       >
                         {{ isSubmittingComment(session.id) ? '…' : 'Envoyer' }}
                       </button>
