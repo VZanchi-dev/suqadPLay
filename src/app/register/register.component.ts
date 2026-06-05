@@ -86,7 +86,7 @@ export class RegisterComponent {
     reader.readAsDataURL(file);
   }
 
-  private resizeToBlob(dataUrl: string, ext: string): Promise<Blob> {
+  private resizeImage(dataUrl: string, ext: string): Promise<{ blob: Blob; resizedDataUrl: string }> {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => {
@@ -98,7 +98,9 @@ export class RegisterComponent {
         const sx = (img.width - size) / 2;
         const sy = (img.height - size) / 2;
         ctx.drawImage(img, sx, sy, size, size, 0, 0, this.AVATAR_PX, this.AVATAR_PX);
-        canvas.toBlob((blob) => resolve(blob!), ext === 'png' ? 'image/png' : 'image/jpeg', 0.8);
+        const mime = ext === 'png' ? 'image/png' : 'image/jpeg';
+        const resizedDataUrl = canvas.toDataURL(mime, 0.8);
+        canvas.toBlob((blob) => resolve({ blob: blob!, resizedDataUrl }), mime, 0.8);
       };
       img.src = dataUrl;
     });
@@ -125,8 +127,8 @@ export class RegisterComponent {
     let avatarUrl: string | null = null;
     if (this.avatarFile && this.avatarPreview) {
       const ext = this.avatarFile.type === 'image/png' ? 'png' : 'jpeg';
-      const blob = await this.resizeToBlob(this.avatarPreview, ext);
-      avatarUrl = await this.supabase.uploadAvatar(blob, ext);
+      const { blob, resizedDataUrl } = await this.resizeImage(this.avatarPreview, ext);
+      avatarUrl = await this.supabase.uploadAvatar(blob, ext) ?? resizedDataUrl;
     }
 
     const { error } = await this.supabase.signUp(email, password, {

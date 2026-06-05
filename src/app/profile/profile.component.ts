@@ -129,7 +129,7 @@ export class ProfileComponent implements OnInit {
     reader.readAsDataURL(file);
   }
 
-  private resizeToBlob(dataUrl: string, ext: string): Promise<Blob> {
+  private resizeImage(dataUrl: string, ext: string): Promise<{ blob: Blob; resizedDataUrl: string }> {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => {
@@ -141,7 +141,9 @@ export class ProfileComponent implements OnInit {
         const sx = (img.width - size) / 2;
         const sy = (img.height - size) / 2;
         ctx.drawImage(img, sx, sy, size, size, 0, 0, this.AVATAR_PX, this.AVATAR_PX);
-        canvas.toBlob((blob) => resolve(blob!), ext === 'png' ? 'image/png' : 'image/jpeg', 0.8);
+        const mime = ext === 'png' ? 'image/png' : 'image/jpeg';
+        const resizedDataUrl = canvas.toDataURL(mime, 0.8);
+        canvas.toBlob((blob) => resolve({ blob: blob!, resizedDataUrl }), mime, 0.8);
       };
       img.src = dataUrl;
     });
@@ -156,9 +158,8 @@ export class ProfileComponent implements OnInit {
     let avatarUrl: string | null = this.meta['avatar_url'] ?? null;
     if (this.avatarFile && this.avatarPreview) {
       const ext = this.avatarFile.type === 'image/png' ? 'png' : 'jpeg';
-      const blob = await this.resizeToBlob(this.avatarPreview, ext);
-      const uploaded = await this.supa.uploadAvatar(blob, ext);
-      if (uploaded) avatarUrl = uploaded;
+      const { blob, resizedDataUrl } = await this.resizeImage(this.avatarPreview, ext);
+      avatarUrl = await this.supa.uploadAvatar(blob, ext) ?? resizedDataUrl;
     }
 
     const { error } = await this.supa.client.auth.updateUser({
@@ -180,7 +181,12 @@ export class ProfileComponent implements OnInit {
     this.saving = false;
 
     if (!error) {
-      this.user = this.auth.currentUser;
+      const { data } = await this.supa.client.auth.getUser();
+      if (data.user) {
+        this.user = data.user;
+        this.avatarPreview = data.user.user_metadata?.['avatar_url'] ?? '';
+      }
+      this.avatarFile = null;
       this.editing = false;
       this.saved = true;
     }
