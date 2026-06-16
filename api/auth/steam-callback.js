@@ -9,19 +9,17 @@ module.exports = async function handler(req, res) {
   // 1. Verify with Steam
   const verifyParams = new URLSearchParams(req.query);
   verifyParams.set('openid.mode', 'check_authentication');
-
   let isValid = false;
   try {
-    const verifyResponse = await fetch('https://steamcommunity.com/openid/login', {
+    const r = await fetch('https://steamcommunity.com/openid/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: verifyParams.toString(),
     });
-    isValid = (await verifyResponse.text()).includes('is_valid:true');
+    isValid = (await r.text()).includes('is_valid:true');
   } catch {
     return res.redirect(302, `${appUrl}/connexion?error=steam_verify_failed`);
   }
-
   if (!isValid) return res.redirect(302, `${appUrl}/connexion?error=steam_auth_invalid`);
 
   // 2. Extract SteamID64
@@ -31,10 +29,9 @@ module.exports = async function handler(req, res) {
     return res.redirect(302, `${appUrl}/connexion?error=steam_id_invalid`);
   }
 
-  // 3. Fetch Steam display name + avatar
+  // 3. Fetch Steam display name
   let username = `steam_${steamId}`;
   let avatarUrl = '';
-
   if (steamApiKey) {
     try {
       const r = await fetch(
@@ -46,8 +43,9 @@ module.exports = async function handler(req, res) {
         if (sanitized.length >= 2) username = sanitized;
         avatarUrl = player.avatarfull || '';
       }
-    } catch { /* proceed with default */ }
+    } catch { /* default username */ }
   }
+  console.log(`[steam] steamId=${steamId} username=${username} apiKeySet=${!!steamApiKey}`);
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
@@ -55,9 +53,18 @@ module.exports = async function handler(req, res) {
 
   const email = `${steamId}@steam.squadplay`;
 
-  // 4. Create or find user — track the user ID either way
-  let userId = null;
+  // 4. Helper : find user by email via Supabase Admin REST API
+  async function findUserByEmail(email) {
+    const r = await fetch(
+      `${supabaseUrl}/auth/v1/admin/users?email=${encodeURIComponent(email)}&page=1&per_page=1`,
+      { headers: { apikey: supabaseServiceKey, Authorization: `Bearer ${supabaseServiceKey}` } }
+    );
+    const data = await r.json();
+    return data?.users?.[0] ?? null;
+  }
 
+  // 5. Create or find user
+  let userId = null;
   const { data: createData, error: createError } = await supabase.auth.admin.createUser({
     email,
     email_confirm: true,
@@ -66,50 +73,52 @@ module.exports = async function handler(req, res) {
 
   if (!createError) {
     userId = createData.user.id;
+    console.log(`[steam] new user created id=${userId}`);
   } else {
     const alreadyExists =
       createError.message.toLowerCase().includes('already') ||
       createError.message.toLowerCase().includes('duplicate');
 
     if (alreadyExists) {
-      // User exists — find their ID
-      const { data: listData } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
-      userId = listData?.users?.find(u => u.email === email)?.id ?? null;
+      const found = await findUserByEmail(email);
+      userId = found?.id ?? null;
+      console.log(`[steam] existing user found id=${userId}`);
     } else {
-      // Possibly a username conflict in trigger — retry with guaranteed-unique name
-      const fallback = `steam_${steamId}`;
+      // Username conflict in trigger — retry with guaranteed-unique name
       const { data: retryData, error: retryError } = await supabase.auth.admin.createUser({
         email,
         email_confirm: true,
-        user_metadata: { steam_id: steamId, username: fallback, avatar_url: avatarUrl, provider: 'steam' },
+        user_metadata: { steam_id: steamId, username: `steam_${steamId}`, avatar_url: avatarUrl, provider: 'steam' },
       });
       if (!retryError) {
         userId = retryData.user.id;
-        username = fallback;
-      } else if (retryError.message.toLowerCase().includes('already')) {
-        const { data: listData } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
-        userId = listData?.users?.find(u => u.email === email)?.id ?? null;
+        username = `steam_${steamId}`;
       } else {
-        console.error('[steam-callback] retry error:', retryError.message);
-        return res.redirect(302, `${appUrl}/connexion?error=user_creation_failed&detail=${encodeURIComponent(retryError.message)}`);
+        const found = await findUserByEmail(email);
+        userId = found?.id ?? null;
+        console.log(`[steam] retry fallback, found id=${userId}`);
       }
     }
   }
 
-  // 5. Always update profile with latest Steam info (fixes stale usernames)
+  // 6. Update profile with latest Steam username on every login
   if (userId) {
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ username })
-      .eq('id', userId);
-
-    if (updateError) {
-      // Username taken by another account — fallback to steamId-based name
-      await supabase.from('profiles').update({ username: `steam_${steamId}` }).eq('id', userId);
+    const { error: upErr } = await supabase.from('profiles').update({ username }).eq('id', userId);
+    if (upErr) {
+      console.warn(`[steam] profile update failed (${upErr.message}), trying fallback`);
+      const { error: upErr2 } = await supabase
+        .from('profiles')
+        .update({ username: `steam_${steamId}` })
+        .eq('id', userId);
+      if (upErr2) console.error(`[steam] fallback update also failed: ${upErr2.message}`);
+    } else {
+      console.log(`[steam] profile updated username=${username}`);
     }
+  } else {
+    console.error('[steam] userId is null — profile not updated');
   }
 
-  // 6. Generate magic link and redirect
+  // 7. Generate magic link
   const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
     type: 'magiclink',
     email,
@@ -117,7 +126,7 @@ module.exports = async function handler(req, res) {
   });
 
   if (linkError || !linkData?.properties?.action_link) {
-    console.error('[steam-callback] generateLink error:', linkError?.message);
+    console.error('[steam] generateLink error:', linkError?.message);
     return res.redirect(302, `${appUrl}/connexion?error=link_generation_failed`);
   }
 
