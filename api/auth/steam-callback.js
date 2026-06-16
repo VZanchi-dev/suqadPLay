@@ -6,7 +6,7 @@ module.exports = async function handler(req, res) {
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
   const steamApiKey = process.env.STEAM_API_KEY || '';
 
-  // 1. Verify authenticity with Steam's check_authentication endpoint
+  // 1. Verify with Steam
   const verifyParams = new URLSearchParams(req.query);
   verifyParams.set('openid.mode', 'check_authentication');
 
@@ -17,78 +17,99 @@ module.exports = async function handler(req, res) {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: verifyParams.toString(),
     });
-    const text = await verifyResponse.text();
-    isValid = text.includes('is_valid:true');
+    isValid = (await verifyResponse.text()).includes('is_valid:true');
   } catch {
     return res.redirect(302, `${appUrl}/connexion?error=steam_verify_failed`);
   }
 
-  if (!isValid) {
-    return res.redirect(302, `${appUrl}/connexion?error=steam_auth_invalid`);
-  }
+  if (!isValid) return res.redirect(302, `${appUrl}/connexion?error=steam_auth_invalid`);
 
-  // 2. Extract SteamID64 from claimed_id (format: https://steamcommunity.com/openid/id/{steamId})
+  // 2. Extract SteamID64
   const claimedId = req.query['openid.claimed_id'];
   const steamId = typeof claimedId === 'string' ? claimedId.split('/').pop() : null;
-
   if (!steamId || !/^\d{17}$/.test(steamId)) {
     return res.redirect(302, `${appUrl}/connexion?error=steam_id_invalid`);
   }
 
-  // 3. Fetch Steam profile (display name + avatar)
+  // 3. Fetch Steam display name + avatar
   let username = `steam_${steamId}`;
   let avatarUrl = '';
 
   if (steamApiKey) {
     try {
-      const profileResponse = await fetch(
+      const r = await fetch(
         `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${steamApiKey}&steamids=${steamId}`
       );
-      const profileData = await profileResponse.json();
-      const player = profileData?.response?.players?.[0];
+      const player = (await r.json())?.response?.players?.[0];
       if (player) {
         const sanitized = player.personaname.replace(/[^a-zA-Z0-9_\-]/g, '_').slice(0, 30);
         if (sanitized.length >= 2) username = sanitized;
         avatarUrl = player.avatarfull || '';
       }
-    } catch { /* proceed with default username */ }
+    } catch { /* proceed with default */ }
   }
 
-  // 4. Create Supabase user (idempotent — safe to retry if already exists)
   const supabase = createClient(supabaseUrl, supabaseServiceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
   const email = `${steamId}@steam.squadplay`;
 
-  const { error: createError } = await supabase.auth.admin.createUser({
+  // 4. Create or find user — track the user ID either way
+  let userId = null;
+
+  const { data: createData, error: createError } = await supabase.auth.admin.createUser({
     email,
     email_confirm: true,
     user_metadata: { steam_id: steamId, username, avatar_url: avatarUrl, provider: 'steam' },
   });
 
-  if (createError) {
-    console.error('[steam-callback] createUser error:', createError.message);
-
+  if (!createError) {
+    userId = createData.user.id;
+  } else {
     const alreadyExists =
       createError.message.toLowerCase().includes('already') ||
       createError.message.toLowerCase().includes('duplicate');
 
-    if (!alreadyExists) {
-      const { error: retryError } = await supabase.auth.admin.createUser({
+    if (alreadyExists) {
+      // User exists — find their ID
+      const { data: listData } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      userId = listData?.users?.find(u => u.email === email)?.id ?? null;
+    } else {
+      // Possibly a username conflict in trigger — retry with guaranteed-unique name
+      const fallback = `steam_${steamId}`;
+      const { data: retryData, error: retryError } = await supabase.auth.admin.createUser({
         email,
         email_confirm: true,
-        user_metadata: { steam_id: steamId, username: `steam_${steamId}`, avatar_url: avatarUrl, provider: 'steam' },
+        user_metadata: { steam_id: steamId, username: fallback, avatar_url: avatarUrl, provider: 'steam' },
       });
-      if (retryError && !retryError.message.toLowerCase().includes('already')) {
-        console.error('[steam-callback] retry createUser error:', retryError.message);
-        const msg = encodeURIComponent(retryError.message);
-        return res.redirect(302, `${appUrl}/connexion?error=user_creation_failed&detail=${msg}`);
+      if (!retryError) {
+        userId = retryData.user.id;
+        username = fallback;
+      } else if (retryError.message.toLowerCase().includes('already')) {
+        const { data: listData } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+        userId = listData?.users?.find(u => u.email === email)?.id ?? null;
+      } else {
+        console.error('[steam-callback] retry error:', retryError.message);
+        return res.redirect(302, `${appUrl}/connexion?error=user_creation_failed&detail=${encodeURIComponent(retryError.message)}`);
       }
     }
   }
 
-  // 5. Generate a one-time magic link for this email and redirect the user to it
+  // 5. Always update profile with latest Steam info (fixes stale usernames)
+  if (userId) {
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ username })
+      .eq('id', userId);
+
+    if (updateError) {
+      // Username taken by another account — fallback to steamId-based name
+      await supabase.from('profiles').update({ username: `steam_${steamId}` }).eq('id', userId);
+    }
+  }
+
+  // 6. Generate magic link and redirect
   const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
     type: 'magiclink',
     email,
@@ -96,6 +117,7 @@ module.exports = async function handler(req, res) {
   });
 
   if (linkError || !linkData?.properties?.action_link) {
+    console.error('[steam-callback] generateLink error:', linkError?.message);
     return res.redirect(302, `${appUrl}/connexion?error=link_generation_failed`);
   }
 
