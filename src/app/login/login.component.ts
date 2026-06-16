@@ -1,7 +1,7 @@
-import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { SupabaseService } from '../core/services/supabase.service';
 
 @Component({
@@ -12,14 +12,16 @@ import { SupabaseService } from '../core/services/supabase.service';
   styleUrl: './login.component.scss'
 })
 export class LoginComponent {
-  private supa   = inject(SupabaseService);
-  private router = inject(Router);
-  private fb     = inject(FormBuilder);
+  private supa       = inject(SupabaseService);
+  private router     = inject(Router);
+  private fb         = inject(FormBuilder);
+  private route      = inject(ActivatedRoute);
+  private platformId = inject(PLATFORM_ID);
 
   form: FormGroup;
-  submitted  = false;
-  loading    = false;
-  errorMsg   = '';
+  submitted    = false;
+  loading      = false;
+  errorMsg     = '';
   showPassword = false;
 
   constructor() {
@@ -27,6 +29,16 @@ export class LoginComponent {
       email:    ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required]],
     });
+
+    this.route.queryParams.subscribe(params => {
+      if (params['error']) this.errorMsg = 'Connexion Steam échouée. Réessaie ou utilise email/mot de passe.';
+    });
+  }
+
+  loginWithSteam() {
+    if (isPlatformBrowser(this.platformId)) {
+      window.location.href = '/api/auth/steam';
+    }
   }
 
   get f() { return this.form.controls; }

@@ -4,6 +4,8 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "start:steam": "ng serve --proxy-config proxy.conf.json",
+    "dev:api": "node scripts/dev-api.js",
     "build": "ng build",
     "build:vercel": "node scripts/set-env.js && ng build --configuration production",
     "watch": "ng build --watch --configuration development",

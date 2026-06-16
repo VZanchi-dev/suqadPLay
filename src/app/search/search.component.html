@@ -191,7 +191,7 @@
               <div class="session-card__host">
                 <div class="host-avatar-wrap">
                   @if (session.host?.avatar_url) {
-                    <img class="host-avatar-img" [src]="session.host.avatar_url" [alt]="session.host.username" />
+                    <img class="host-avatar-img" [src]="session.host!.avatar_url" [alt]="session.host!.username" />
                   } @else {
                     <span class="host-avatar">{{ session.host?.avatar_emoji ?? '🎮' }}</span>
                   }
