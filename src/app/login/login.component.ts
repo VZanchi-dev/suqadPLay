@@ -31,7 +31,10 @@ export class LoginComponent {
     });
 
     this.route.queryParams.subscribe(params => {
-      if (params['error']) this.errorMsg = 'Connexion Steam échouée. Réessaie ou utilise email/mot de passe.';
+      if (params['error']) {
+        const detail = params['detail'] ? ` (${params['detail']})` : '';
+        this.errorMsg = `Connexion Steam échouée${detail}`;
+      }
     });
   }
 

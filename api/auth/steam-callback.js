@@ -82,7 +82,8 @@ module.exports = async function handler(req, res) {
       });
       if (retryError && !retryError.message.toLowerCase().includes('already')) {
         console.error('[steam-callback] retry createUser error:', retryError.message);
-        return res.redirect(302, `${appUrl}/connexion?error=user_creation_failed`);
+        const msg = encodeURIComponent(retryError.message);
+        return res.redirect(302, `${appUrl}/connexion?error=user_creation_failed&detail=${msg}`);
       }
     }
   }
