@@ -68,18 +68,20 @@ module.exports = async function handler(req, res) {
   });
 
   if (createError) {
+    console.error('[steam-callback] createUser error:', createError.message);
+
     const alreadyExists =
       createError.message.toLowerCase().includes('already') ||
       createError.message.toLowerCase().includes('duplicate');
 
     if (!alreadyExists) {
-      // Possibly a username conflict in the trigger — retry with guaranteed-unique username
       const { error: retryError } = await supabase.auth.admin.createUser({
         email,
         email_confirm: true,
         user_metadata: { steam_id: steamId, username: `steam_${steamId}`, avatar_url: avatarUrl, provider: 'steam' },
       });
       if (retryError && !retryError.message.toLowerCase().includes('already')) {
+        console.error('[steam-callback] retry createUser error:', retryError.message);
         return res.redirect(302, `${appUrl}/connexion?error=user_creation_failed`);
       }
     }
