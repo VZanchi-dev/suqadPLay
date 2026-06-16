@@ -12,6 +12,7 @@ export interface CreateSessionDto {
   languages: Language[];
   discord_required: boolean;
   discord_invite: string | null;
+  teamspeak_ip: string | null;
   players_max: number;
 }
 

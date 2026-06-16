@@ -158,6 +158,9 @@
                 </div>
               </div>
               <div class="session-card__badges">
+                @if (session.teamspeak_ip) {
+                  <span class="badge badge--teamspeak">🖥️ TeamSpeak</span>
+                }
                 @if (session.discord_required) {
                   <span class="badge badge--discord">🎙️ Discord</span>
                 }
@@ -222,7 +225,7 @@
                   [disabled]="session.status === 'full'"
                   (click)="join(session)"
                 >
-                  {{ session.status === 'full' ? 'Complet' : (session.discord_invite ? '🎙️ Rejoindre' : 'Rejoindre') }}
+                  {{ session.status === 'full' ? 'Complet' : (session.teamspeak_ip ? '🖥️ Rejoindre' : session.discord_invite ? '🎙️ Rejoindre' : 'Rejoindre') }}
                 </button>
               }
             </div>

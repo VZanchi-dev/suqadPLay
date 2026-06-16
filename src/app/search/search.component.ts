@@ -183,9 +183,10 @@ export class SearchComponent implements OnDestroy {
   }
 
   join(session: Session) {
-    if (session.discord_invite) {
+    if (session.teamspeak_ip) {
+      window.open(`ts3server://${session.teamspeak_ip}`, '_blank', 'noopener,noreferrer');
+    } else if (session.discord_invite) {
       window.open(session.discord_invite, '_blank', 'noopener,noreferrer');
-      return;
     }
     if (this.currentUserId) {
       this.sessionService.joinSession(session.id, this.currentUserId).subscribe();

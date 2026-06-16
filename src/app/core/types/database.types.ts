@@ -34,6 +34,7 @@ export interface Session {
   languages: Language[];
   discord_required: boolean;
   discord_invite: string | null;
+  teamspeak_ip: string | null;
   players_max: number;
   status: 'open' | 'full' | 'closed';
   created_at: string;

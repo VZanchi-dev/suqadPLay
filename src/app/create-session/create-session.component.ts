@@ -46,6 +46,7 @@ export class CreateSessionComponent implements OnInit {
       age_range:        ['', [Validators.required]],
       discord_required: [false],
       discord_invite:   [''],
+      teamspeak_ip:     [''],
       players_max:      [4, [Validators.required, Validators.min(2), Validators.max(10)]],
     });
 
@@ -113,6 +114,7 @@ export class CreateSessionComponent implements OnInit {
       languages:        Array.from(this.selectedLanguages) as Language[],
       discord_required: v.discord_required,
       discord_invite:   v.discord_required ? `https://discord.gg/${v.discord_invite.trim()}` : null,
+      teamspeak_ip:     v.teamspeak_ip?.trim() || null,
       players_max:      Number(v.players_max),
     }, user.id).subscribe(({ session, error }) => {
       this.saving = false;
