@@ -32,6 +32,8 @@ module.exports = async function handler(req, res) {
   // 3. Fetch Steam display name
   let username = `steam_${steamId}`;
   let avatarUrl = '';
+
+  // Essaie d'abord l'API officielle (si STEAM_API_KEY est défini)
   if (steamApiKey) {
     try {
       const r = await fetch(
@@ -43,7 +45,22 @@ module.exports = async function handler(req, res) {
         if (sanitized.length >= 2) username = sanitized;
         avatarUrl = player.avatarfull || '';
       }
-    } catch { /* default username */ }
+    } catch { /* fallback vers XML */ }
+  }
+
+  // Fallback : profil XML public Steam (pas besoin de clé API)
+  if (username === `steam_${steamId}`) {
+    try {
+      const r = await fetch(`https://steamcommunity.com/profiles/${steamId}/?xml=1`);
+      const xml = await r.text();
+      const nameMatch = xml.match(/<steamID><!\[CDATA\[(.+?)\]\]><\/steamID>/);
+      const avatarMatch = xml.match(/<avatarFull><!\[CDATA\[(.+?)\]\]><\/avatarFull>/);
+      if (nameMatch?.[1]) {
+        const sanitized = nameMatch[1].replace(/[^a-zA-Z0-9_\-]/g, '_').slice(0, 30);
+        if (sanitized.length >= 2) username = sanitized;
+      }
+      if (avatarMatch?.[1]) avatarUrl = avatarMatch[1];
+    } catch { /* garde le fallback steam_${steamId} */ }
   }
   console.log(`[steam] steamId=${steamId} username=${username} apiKeySet=${!!steamApiKey}`);
 
