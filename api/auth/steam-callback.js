@@ -53,14 +53,17 @@ module.exports = async function handler(req, res) {
 
   const email = `${steamId}@steam.squadplay`;
 
-  // 4. Helper : find user by email via Supabase Admin REST API
+  // 4. Helper : find user by email via paginated listUsers
   async function findUserByEmail(email) {
-    const r = await fetch(
-      `${supabaseUrl}/auth/v1/admin/users?email=${encodeURIComponent(email)}&page=1&per_page=1`,
-      { headers: { apikey: supabaseServiceKey, Authorization: `Bearer ${supabaseServiceKey}` } }
-    );
-    const data = await r.json();
-    return data?.users?.[0] ?? null;
+    let page = 1;
+    while (true) {
+      const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: 1000 });
+      if (error || !data?.users) return null;
+      const found = data.users.find(u => u.email === email);
+      if (found) return found;
+      if (!data.nextPage) return null;
+      page = data.nextPage;
+    }
   }
 
   // 5. Create or find user
