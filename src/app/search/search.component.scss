@@ -468,6 +468,12 @@ $text-muted: #64748b;
 
 .slots-text { font-size: 0.75rem; color: $text-muted; }
 
+.owner-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 .btn-close {
   padding: 0.55rem 1.25rem;
   border-radius: 0.5rem;

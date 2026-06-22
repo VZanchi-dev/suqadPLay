@@ -215,9 +215,16 @@
               </div>
 
               @if (isOwner(session)) {
-                <button class="btn-close" (click)="closeSession(session.id)">
-                  🔴 Terminer
-                </button>
+                <div class="owner-actions">
+                  @if (session.teamspeak_ip || session.discord_invite) {
+                    <button class="btn-join" (click)="join(session)">
+                      {{ session.teamspeak_ip ? '🖥️ Rejoindre' : '🎙️ Rejoindre' }}
+                    </button>
+                  }
+                  <button class="btn-close" (click)="closeSession(session.id)">
+                    🔴 Terminer
+                  </button>
+                </div>
               } @else {
                 <button
                   class="btn-join"
