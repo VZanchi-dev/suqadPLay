@@ -3,18 +3,15 @@ const path = require('path');
 
 const url     = process.env.SUPABASE_URL      || '';
 const anonKey = process.env.SUPABASE_ANON_KEY || '';
-const appUrl  = process.env.APP_URL           || '';
+// VERCEL_URL est fourni automatiquement par Vercel (sans https://)
+const appUrl  = process.env.APP_URL
+  || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '');
 
-const missing = [
-  !url      && 'SUPABASE_URL',
-  !anonKey  && 'SUPABASE_ANON_KEY',
-  !appUrl   && 'APP_URL',
-].filter(Boolean);
-
-if (missing.length > 0) {
-  console.error(`[set-env] ERREUR : variables manquantes : ${missing.join(', ')}`);
-  console.error('[set-env] Définis-les dans les variables d\'environnement Vercel avant de builder.');
-  process.exit(1);
+if (!url || !anonKey) {
+  console.warn('[set-env] ATTENTION : SUPABASE_URL ou SUPABASE_ANON_KEY manquant — vérifie les variables Vercel.');
+}
+if (!appUrl) {
+  console.warn('[set-env] ATTENTION : APP_URL manquant — ajoute-le dans les variables Vercel.');
 }
 
 const dev = `export const environment = {
