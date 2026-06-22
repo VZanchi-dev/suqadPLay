@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { from, Observable, of } from 'rxjs';
 import { map, catchError, switchMap } from 'rxjs/operators';
 import { SupabaseService } from './supabase.service';
-import { Session, SessionFilters, Comment, Game, PlayerLevel, AgeRange, Language } from '../types/database.types';
+import { Session, SessionFilters, Comment, Game, GameCategory, PlayerLevel, AgeRange, Language } from '../types/database.types';
 
 export interface CreateSessionDto {
   game_id: string;
