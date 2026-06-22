@@ -184,13 +184,11 @@ export class SearchComponent implements OnDestroy {
 
   join(session: Session) {
     if (session.teamspeak_ip) {
-      if (/^(\d{1,3}\.){3}\d{1,3}(:\d{1,5})?$/.test(session.teamspeak_ip)) {
-        window.open(`ts3server://${session.teamspeak_ip}`, '_blank', 'noopener,noreferrer');
-      }
+      window.open(`ts3server://${session.teamspeak_ip.trim()}`, '_blank', 'noopener,noreferrer');
     } else if (session.discord_invite) {
-      if (/^https:\/\/discord\.gg\/[A-Za-z0-9_-]{2,32}$/.test(session.discord_invite)) {
-        window.open(session.discord_invite, '_blank', 'noopener,noreferrer');
-      }
+      const url = session.discord_invite.trim();
+      const fullUrl = url.startsWith('http') ? url : `https://discord.gg/${url}`;
+      window.open(fullUrl, '_blank', 'noopener,noreferrer');
     }
     if (this.currentUserId) {
       this.sessionService.joinSession(session.id, this.currentUserId).subscribe();
