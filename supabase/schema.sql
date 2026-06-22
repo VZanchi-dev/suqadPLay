@@ -38,6 +38,7 @@ create table public.profiles (
   id               uuid primary key references auth.users(id) on delete cascade,
   username         text not null unique,
   avatar_emoji     text not null default '🎮',
+  avatar_url       text,
   level            player_level not null default 'Débutant',
   age_range        age_range not null default '18-25 ans',
   languages        text[] not null default array['Français'],
@@ -56,6 +57,8 @@ create table public.sessions (
   age_range        age_range not null default '18-25 ans',
   languages        text[] not null default array['Français'],
   discord_required boolean not null default false,
+  discord_invite   text check (discord_invite is null or discord_invite ~ '^https://discord\.gg/[A-Za-z0-9_-]{2,32}$'),
+  teamspeak_ip     text check (teamspeak_ip is null or teamspeak_ip ~ '^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d{1,5})?$'),
   players_max      int not null default 5 check (players_max between 2 and 20),
   status           session_status not null default 'open',
   created_at       timestamptz default now()
@@ -181,6 +184,25 @@ insert into public.games (name, emoji, category) values
   ('World of Warcraft', '🐉', 'MMO'),
   ('Warframe',          '🤖', 'RPG');
 
+-- ─── Table : comments ────────────────────────────────────────
+create table public.comments (
+  id         uuid primary key default uuid_generate_v4(),
+  session_id uuid not null references public.sessions(id) on delete cascade,
+  author_id  uuid not null references public.profiles(id) on delete cascade,
+  content    text not null check (char_length(content) between 1 and 500),
+  created_at timestamptz default now()
+);
+
+alter table public.comments enable row level security;
+
+create policy "comments_select_public" on public.comments
+  for select using (true);
+create policy "comments_insert_auth" on public.comments
+  for insert with check (auth.uid() = author_id);
+create policy "comments_delete_own" on public.comments
+  for delete using (auth.uid() = author_id);
+
 -- ─── Realtime : activer les tables ───────────────────────────
 alter publication supabase_realtime add table public.sessions;
 alter publication supabase_realtime add table public.session_players;
+alter publication supabase_realtime add table public.comments;

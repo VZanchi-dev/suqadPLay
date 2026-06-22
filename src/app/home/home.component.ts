@@ -1,7 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { NavbarComponent } from '../navbar/navbar.component';
+import { SessionService } from '../core/services/session.service';
+import { Session } from '../core/types/database.types';
 
 @Component({
   selector: 'app-home',
@@ -10,7 +12,11 @@ import { NavbarComponent } from '../navbar/navbar.component';
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit {
+  private sessionService = inject(SessionService);
+
+  latestSessions = signal<Session[]>([]);
+
   features = [
     {
       icon: '🎮',
@@ -35,12 +41,12 @@ export class HomeComponent {
   ];
 
   games = [
-    { name: 'Valorant', genre: 'FPS Tactique', players: '12.4k', image: '🎯' },
-    { name: 'League of Legends', genre: 'MOBA', players: '18.2k', image: '⚔️' },
-    { name: 'Fortnite', genre: 'Battle Royale', players: '9.8k', image: '🏗️' },
-    { name: 'CS2', genre: 'FPS', players: '15.1k', image: '💣' },
-    { name: 'Rocket League', genre: 'Sport', players: '7.3k', image: '🚀' },
-    { name: 'Apex Legends', genre: 'Battle Royale', players: '11.6k', image: '🦾' }
+    { name: 'Valorant', genre: 'FPS Tactique', image: '🎯' },
+    { name: 'League of Legends', genre: 'MOBA', image: '⚔️' },
+    { name: 'Fortnite', genre: 'Battle Royale', image: '🏗️' },
+    { name: 'CS2', genre: 'FPS', image: '💣' },
+    { name: 'Rocket League', genre: 'Sport', image: '🚀' },
+    { name: 'Apex Legends', genre: 'Battle Royale', image: '🦾' }
   ];
 
   steps = [
@@ -48,4 +54,28 @@ export class HomeComponent {
     { number: '02', title: 'Trouve ta session', description: 'Parcours les sessions disponibles ou crée la tienne en quelques clics.' },
     { number: '03', title: 'Joue ensemble', description: 'Rejoins tes nouveaux coéquipiers et profite de l\'expérience gaming ultime.' }
   ];
+
+  ngOnInit() {
+    this.sessionService.getSessions({
+      search: '', ageRanges: [], categories: [], levels: [], languages: [], discordOnly: false
+    }).subscribe(sessions => {
+      this.latestSessions.set(sessions.slice(0, 2));
+    });
+  }
+
+  levelColor(level: string): string {
+    const map: Record<string, string> = {
+      'Débutant': 'green', 'Intermédiaire': 'blue', 'Confirmé': 'purple', 'Expert': 'gold'
+    };
+    return map[level] ?? 'default';
+  }
+
+  formatTime(createdAt: string): string {
+    const diff = Math.floor((Date.now() - new Date(createdAt).getTime()) / 60000);
+    if (diff < 1) return 'à l\'instant';
+    if (diff < 60) return `il y a ${diff} min`;
+    const h = Math.floor(diff / 60);
+    if (h < 24) return `il y a ${h}h`;
+    return `il y a ${Math.floor(h / 24)}j`;
+  }
 }

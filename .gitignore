@@ -41,6 +41,11 @@ testem.log
 .DS_Store
 Thumbs.db
 
+# Variables d'environnement — ne jamais commiter
+.env
+.env.*
+!.env.example
+
 # Environment (contient les clés API — ne pas commiter)
 src/environments/environment.ts
 src/environments/environment.prod.ts

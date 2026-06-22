@@ -1,10 +1,16 @@
 const { createClient } = require('@supabase/supabase-js');
 
 module.exports = async function handler(req, res) {
-  const appUrl = process.env.APP_URL || 'https://suqad-p-lay-c879.vercel.app';
+  const appUrl = process.env.APP_URL;
+  if (!appUrl) return res.status(500).json({ error: 'APP_URL non configuré' });
+
   const supabaseUrl = process.env.SUPABASE_URL || '';
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
   const steamApiKey = process.env.STEAM_API_KEY || '';
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    return res.redirect(302, `${appUrl}/connexion?error=server_config_error`);
+  }
 
   // 1. Verify with Steam
   const verifyParams = new URLSearchParams(req.query);
@@ -33,7 +39,6 @@ module.exports = async function handler(req, res) {
   let username = `steam_${steamId}`;
   let avatarUrl = '';
 
-  // Essaie d'abord l'API officielle (si STEAM_API_KEY est défini)
   if (steamApiKey) {
     try {
       const r = await fetch(
@@ -48,7 +53,6 @@ module.exports = async function handler(req, res) {
     } catch { /* fallback vers XML */ }
   }
 
-  // Fallback : profil XML public Steam (pas besoin de clé API)
   if (username === `steam_${steamId}`) {
     try {
       const r = await fetch(`https://steamcommunity.com/profiles/${steamId}/?xml=1`);
@@ -62,7 +66,6 @@ module.exports = async function handler(req, res) {
       if (avatarMatch?.[1]) avatarUrl = avatarMatch[1];
     } catch { /* garde le fallback steam_${steamId} */ }
   }
-  console.log(`[steam] steamId=${steamId} username=${username} apiKeySet=${!!steamApiKey}`);
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
@@ -88,12 +91,11 @@ module.exports = async function handler(req, res) {
   const { data: createData, error: createError } = await supabase.auth.admin.createUser({
     email,
     email_confirm: true,
-    user_metadata: { steam_id: steamId, username, avatar_url: avatarUrl, provider: 'steam' },
+    user_metadata: { steam_id: steamId, username, pseudo: username, avatar_url: avatarUrl, provider: 'steam' },
   });
 
   if (!createError) {
     userId = createData.user.id;
-    console.log(`[steam] new user created id=${userId}`);
   } else {
     const alreadyExists =
       createError.message.toLowerCase().includes('already') ||
@@ -102,13 +104,11 @@ module.exports = async function handler(req, res) {
     if (alreadyExists) {
       const found = await findUserByEmail(email);
       userId = found?.id ?? null;
-      console.log(`[steam] existing user found id=${userId}`);
     } else {
-      // Username conflict in trigger — retry with guaranteed-unique name
       const { data: retryData, error: retryError } = await supabase.auth.admin.createUser({
         email,
         email_confirm: true,
-        user_metadata: { steam_id: steamId, username: `steam_${steamId}`, avatar_url: avatarUrl, provider: 'steam' },
+        user_metadata: { steam_id: steamId, username: `steam_${steamId}`, pseudo: `steam_${steamId}`, avatar_url: avatarUrl, provider: 'steam' },
       });
       if (!retryError) {
         userId = retryData.user.id;
@@ -116,26 +116,21 @@ module.exports = async function handler(req, res) {
       } else {
         const found = await findUserByEmail(email);
         userId = found?.id ?? null;
-        console.log(`[steam] retry fallback, found id=${userId}`);
       }
     }
   }
 
-  // 6. Update profile with latest Steam username on every login
+  // 6. Update profile + user_metadata with latest Steam username on every login
   if (userId) {
     const { error: upErr } = await supabase.from('profiles').update({ username }).eq('id', userId);
     if (upErr) {
-      console.warn(`[steam] profile update failed (${upErr.message}), trying fallback`);
-      const { error: upErr2 } = await supabase
-        .from('profiles')
-        .update({ username: `steam_${steamId}` })
-        .eq('id', userId);
-      if (upErr2) console.error(`[steam] fallback update also failed: ${upErr2.message}`);
-    } else {
-      console.log(`[steam] profile updated username=${username}`);
+      await supabase.from('profiles').update({ username: `steam_${steamId}` }).eq('id', userId);
     }
+    await supabase.auth.admin.updateUserById(userId, {
+      user_metadata: { username, pseudo: username, avatar_url: avatarUrl },
+    });
   } else {
-    console.error('[steam] userId is null — profile not updated');
+    return res.redirect(302, `${appUrl}/connexion?error=user_not_found`);
   }
 
   // 7. Generate magic link
@@ -146,7 +141,6 @@ module.exports = async function handler(req, res) {
   });
 
   if (linkError || !linkData?.properties?.action_link) {
-    console.error('[steam] generateLink error:', linkError?.message);
     return res.redirect(302, `${appUrl}/connexion?error=link_generation_failed`);
   }
 

@@ -25,7 +25,13 @@ export class NavbarComponent implements OnInit {
   }
 
   get pseudo(): string {
-    return this.user?.user_metadata?.['pseudo'] ?? this.user?.email?.split('@')[0] ?? 'Mon compte';
+    const meta = this.user?.user_metadata;
+    return meta?.['pseudo'] ?? meta?.['username'] ?? this.user?.email?.split('@')[0] ?? 'Mon compte';
+  }
+
+  get isSteamUser(): boolean {
+    return this.user?.user_metadata?.['provider'] === 'steam'
+      || !!this.user?.email?.endsWith('@steam.squadplay');
   }
 
   get avatar(): string {

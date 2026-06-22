@@ -5,10 +5,12 @@ import { RegisterComponent } from './register/register.component';
 import { ProfileComponent } from './profile/profile.component';
 import { CreateSessionComponent } from './create-session/create-session.component';
 import { LoginComponent } from './login/login.component';
+import { GamesComponent } from './games/games.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'recherche', component: SearchComponent },
+  { path: 'jeux', component: GamesComponent },
   { path: 'inscription', component: RegisterComponent },
   { path: 'profil', component: ProfileComponent },
   { path: 'creer-session', component: CreateSessionComponent },

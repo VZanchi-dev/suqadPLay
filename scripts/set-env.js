@@ -3,10 +3,18 @@ const path = require('path');
 
 const url     = process.env.SUPABASE_URL      || '';
 const anonKey = process.env.SUPABASE_ANON_KEY || '';
-const appUrl  = process.env.APP_URL           || 'https://suqad-p-lay-c879.vercel.app';
+const appUrl  = process.env.APP_URL           || '';
 
-if (!url || !anonKey) {
-  console.warn('[set-env] SUPABASE_URL ou SUPABASE_ANON_KEY manquant — vérifie les variables Vercel.');
+const missing = [
+  !url      && 'SUPABASE_URL',
+  !anonKey  && 'SUPABASE_ANON_KEY',
+  !appUrl   && 'APP_URL',
+].filter(Boolean);
+
+if (missing.length > 0) {
+  console.error(`[set-env] ERREUR : variables manquantes : ${missing.join(', ')}`);
+  console.error('[set-env] Définis-les dans les variables d\'environnement Vercel avant de builder.');
+  process.exit(1);
 }
 
 const dev = `export const environment = {

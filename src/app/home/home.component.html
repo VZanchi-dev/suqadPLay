@@ -16,7 +16,6 @@
         SquadPlay connecte les joueurs PC du monde entier. Rejoins des sessions, forme ta team et vis des aventures gaming inoubliables.
       </p>
       <div class="hero__ctas">
-        <button class="btn btn--primary btn--lg">Commencer gratuitement</button>
         <a routerLink="/recherche" class="btn btn--outline btn--lg">Voir les sessions</a>
       </div>
       <div class="hero__stats">
@@ -81,6 +80,48 @@
     </div>
   </section>
 
+  <!-- DERNIÈRES SESSIONS -->
+  @if (latestSessions().length > 0) {
+    <section class="latest-sessions">
+      <div class="section-inner">
+        <div class="section-header">
+          <span class="section-tag">En direct</span>
+          <h2 class="section-title">Dernières sessions ouvertes</h2>
+          <p class="section-subtitle">Rejoins une session active ou crée la tienne.</p>
+        </div>
+        <div class="ls__grid">
+          @for (session of latestSessions(); track session.id) {
+            <div class="ls-card">
+              <div class="ls-card__header">
+                <span class="ls-card__game-emoji">{{ session.game?.emoji ?? '🎮' }}</span>
+                <div class="ls-card__game-info">
+                  <span class="ls-card__game-name">{{ session.game?.name ?? 'Jeu inconnu' }}</span>
+                  <span class="ls-card__time">{{ formatTime(session.created_at) }}</span>
+                </div>
+                <span class="ls-card__status">● Live</span>
+              </div>
+              <p class="ls-card__desc">{{ session.description }}</p>
+              <div class="ls-card__tags">
+                <span class="tag tag--{{ levelColor(session.level_required) }}">{{ session.level_required }}</span>
+                <span class="tag tag--default">{{ session.age_range }}</span>
+                @if (session.discord_required) {
+                  <span class="tag tag--discord">Discord requis</span>
+                }
+              </div>
+              <div class="ls-card__footer">
+                <span class="ls-card__host">Par {{ session.host?.username ?? '—' }}</span>
+                <a routerLink="/recherche" class="btn btn--primary btn--sm">Rejoindre</a>
+              </div>
+            </div>
+          }
+        </div>
+        <div class="ls__more">
+          <a routerLink="/recherche" class="btn btn--outline">Voir toutes les sessions</a>
+        </div>
+      </div>
+    </section>
+  }
+
   <!-- FEATURES -->
   <section class="features">
     <div class="section-inner">
@@ -116,15 +157,11 @@
               <h4 class="game-card__name">{{ game.name }}</h4>
               <span class="game-card__genre">{{ game.genre }}</span>
             </div>
-            <div class="game-card__players">
-              <span class="online-dot"></span>
-              {{ game.players }} joueurs
-            </div>
           </div>
         }
       </div>
       <div class="games__more">
-        <button class="btn btn--outline">Voir tous les jeux</button>
+        <a routerLink="/jeux" class="btn btn--outline">Voir tous les jeux</a>
       </div>
     </div>
   </section>

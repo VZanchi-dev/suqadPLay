@@ -32,7 +32,8 @@ export class SessionService {
         host:profiles!host_id(*)
       `)
       .eq('status', 'open')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(100);
 
     if (filters.ageRanges.length > 0) {
       query = query.in('age_range', filters.ageRanges);
@@ -48,7 +49,6 @@ export class SessionService {
 
     return from(query).pipe(
       map(({ data, error }) => {
-        console.log('[Supabase] data:', data, 'error:', error);
         if (error) throw error;
 
         let sessions = (data as Session[]) ?? [];

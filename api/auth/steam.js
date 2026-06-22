@@ -1,5 +1,6 @@
 module.exports = function handler(req, res) {
-  const appUrl = process.env.APP_URL || 'https://suqad-p-lay-c879.vercel.app';
+  const appUrl = process.env.APP_URL;
+  if (!appUrl) return res.status(500).json({ error: 'APP_URL non configuré' });
   const callbackUrl = `${appUrl}/api/auth/steam-callback`;
 
   const params = new URLSearchParams({

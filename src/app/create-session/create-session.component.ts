@@ -102,8 +102,23 @@ export class CreateSessionComponent implements OnInit {
       return;
     }
 
+    const v = this.form.value;
+
+    // Validation du code Discord
+    const discordCode = v.discord_invite?.trim() ?? '';
+    if (v.discord_required && !/^[A-Za-z0-9_-]{2,32}$/.test(discordCode)) {
+      this.errorMsg = 'Le code d\'invitation Discord doit contenir uniquement des lettres, chiffres, tirets ou underscores (2-32 caractères).';
+      return;
+    }
+
+    // Validation de l'IP TeamSpeak
+    const tsIp = v.teamspeak_ip?.trim() ?? '';
+    if (tsIp && !/^(\d{1,3}\.){3}\d{1,3}(:\d{1,5})?$/.test(tsIp)) {
+      this.errorMsg = 'L\'adresse TeamSpeak doit être une IP valide (ex : 192.168.1.1 ou 192.168.1.1:9987).';
+      return;
+    }
+
     this.saving = true;
-    const v    = this.form.value;
     const user = this.auth.currentUser;
 
     this.sessionSvc.createSession({
@@ -113,8 +128,8 @@ export class CreateSessionComponent implements OnInit {
       age_range:        v.age_range,
       languages:        Array.from(this.selectedLanguages) as Language[],
       discord_required: v.discord_required,
-      discord_invite:   v.discord_required ? `https://discord.gg/${v.discord_invite.trim()}` : null,
-      teamspeak_ip:     v.teamspeak_ip?.trim() || null,
+      discord_invite:   v.discord_required ? `https://discord.gg/${discordCode}` : null,
+      teamspeak_ip:     tsIp || null,
       players_max:      Number(v.players_max),
     }, user.id).subscribe(({ session, error }) => {
       this.saving = false;

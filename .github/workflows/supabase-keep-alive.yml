@@ -1,0 +1,26 @@
+name: Supabase Keep Alive
+
+on:
+  schedule:
+    - cron: '0 10 */4 * *'  # toutes les 4 jours à 10h UTC
+  workflow_dispatch:          # permet de lancer manuellement depuis GitHub
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${SUPABASE_URL}/rest/v1/games?select=id&limit=1" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
+          echo "Statut HTTP : $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "Erreur : la base Supabase n'a pas répondu (code $STATUS)"
+            exit 1
+          fi
+          echo "Base Supabase active."
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}

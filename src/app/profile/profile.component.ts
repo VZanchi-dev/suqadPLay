@@ -106,7 +106,7 @@ export class ProfileComponent implements OnInit {
     };
   }
 
-  onAvatarChange(event: Event) {
+  async onAvatarChange(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     this.avatarError = '';
@@ -123,10 +123,25 @@ export class ProfileComponent implements OnInit {
       return;
     }
 
+    if (!(await this.validateImageMagicBytes(file))) {
+      this.avatarError = 'Le fichier ne semble pas être une image valide.';
+      return;
+    }
+
     this.avatarFile = file;
     const reader = new FileReader();
     reader.onload = (e) => { this.avatarPreview = e.target?.result as string; };
     reader.readAsDataURL(file);
+  }
+
+  private async validateImageMagicBytes(file: File): Promise<boolean> {
+    const buffer = await file.slice(0, 12).arrayBuffer();
+    const b = new Uint8Array(buffer);
+    if (b[0] === 0xFF && b[1] === 0xD8 && b[2] === 0xFF) return true; // JPEG
+    if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4E && b[3] === 0x47) return true; // PNG
+    if (b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 &&
+        b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50) return true; // WebP
+    return false;
   }
 
   private resizeImage(dataUrl: string, ext: string): Promise<{ blob: Blob; resizedDataUrl: string }> {
@@ -162,8 +177,7 @@ export class ProfileComponent implements OnInit {
       avatarUrl = await this.supa.uploadAvatar(blob, ext) ?? resizedDataUrl;
     }
 
-    await (this.supa.client
-      .from('profiles') as any)
+    await (this.supa.client.from('profiles') as any)
       .update({ avatar_url: avatarUrl })
       .eq('id', this.user!.id);
 

@@ -1,0 +1,59 @@
+<div class="page">
+  <app-navbar></app-navbar>
+
+  <div class="games-page">
+    <div class="games-page__header">
+      <span class="section-tag">Catalogue</span>
+      <h1 class="games-page__title">Tous les jeux</h1>
+      <p class="games-page__subtitle">Retrouve les sessions actives pour chaque jeu disponible sur SquadPlay.</p>
+
+      <div class="games-page__controls">
+        <div class="search-box">
+          <span class="search-box__icon">🔍</span>
+          <input
+            type="text"
+            class="search-box__input"
+            placeholder="Rechercher un jeu..."
+            [value]="search()"
+            (input)="updateSearch($any($event.target).value)"
+          />
+        </div>
+      </div>
+
+      <div class="categories">
+        @for (cat of CATEGORIES; track cat) {
+          <button
+            class="category-chip"
+            [class.category-chip--active]="selectedCategory() === cat"
+            (click)="selectCategory(cat)"
+          >
+            {{ categoryIcon(cat) }} {{ cat }}
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (loading()) {
+      <div class="games-page__loading">Chargement des jeux...</div>
+    } @else if (filteredGames().length === 0) {
+      <div class="games-page__empty">Aucun jeu trouvé.</div>
+    } @else {
+      <div class="games-grid">
+        @for (game of filteredGames(); track game.id) {
+          <a
+            routerLink="/recherche"
+            [queryParams]="{ category: game.category }"
+            class="game-card"
+          >
+            <div class="game-card__emoji">{{ game.emoji }}</div>
+            <div class="game-card__info">
+              <h3 class="game-card__name">{{ game.name }}</h3>
+              <span class="game-card__category">{{ categoryIcon(game.category) }} {{ game.category }}</span>
+            </div>
+            <span class="game-card__cta">Voir les sessions →</span>
+          </a>
+        }
+      </div>
+    }
+  </div>
+</div>

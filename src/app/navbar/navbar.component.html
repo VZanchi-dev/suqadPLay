@@ -8,8 +8,6 @@
     <ul class="navbar__links">
       <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Accueil</a></li>
       <li><a routerLink="/recherche" routerLinkActive="active">Rechercher</a></li>
-      <li><a href="#">Joueurs</a></li>
-      <li><a href="#">Événements</a></li>
     </ul>
 
     <div class="navbar__actions">
@@ -34,7 +32,11 @@
             <div class="user-menu__dropdown">
               <div class="user-menu__info">
                 <span class="user-menu__name">{{ pseudo }}</span>
-                <span class="user-menu__email">{{ user.email }}</span>
+                @if (!user.email?.endsWith('@steam.squadplay')) {
+                  <span class="user-menu__email">{{ user.email }}</span>
+                } @else {
+                  <span class="user-menu__email">Connexion Steam</span>
+                }
               </div>
               <div class="user-menu__divider"></div>
               <a routerLink="/profil" class="user-menu__item">
