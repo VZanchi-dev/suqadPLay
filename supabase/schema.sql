@@ -141,9 +141,11 @@ alter table public.profiles        enable row level security;
 alter table public.sessions        enable row level security;
 alter table public.session_players enable row level security;
 
--- games : lecture publique
+-- games : lecture publique, insertion par les utilisateurs connectés
 create policy "games_select_public" on public.games
   for select using (true);
+create policy "games_insert_auth" on public.games
+  for insert with check (auth.uid() is not null);
 
 -- profiles : lecture publique, modif par le propriétaire
 create policy "profiles_select_public" on public.profiles

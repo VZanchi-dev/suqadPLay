@@ -22,20 +22,77 @@
             <span class="cs-card__num">1</span> Choisis ton jeu
           </h2>
 
-          <div class="games-grid">
-            @for (game of games; track game.id) {
-              <button
-                type="button"
-                class="game-card"
-                [class.game-card--selected]="selectedGame?.id === game.id"
-                (click)="selectGame(game)"
-              >
-                <span class="game-card__emoji">{{ game.emoji }}</span>
-                <span class="game-card__name">{{ game.name }}</span>
-                <span class="game-card__cat">{{ game.category }}</span>
-              </button>
-            }
-          </div>
+          @if (selectedGame) {
+            <div class="selected-game">
+              <span class="selected-game__emoji">{{ selectedGame.emoji }}</span>
+              <div class="selected-game__info">
+                <span class="selected-game__name">{{ selectedGame.name }}</span>
+                <span class="selected-game__cat">{{ selectedGame.category }}</span>
+              </div>
+              <button type="button" class="selected-game__clear" (click)="clearGame()">✕ Changer</button>
+            </div>
+          } @else {
+            <div class="game-autocomplete">
+              <div class="game-search-wrap">
+                <span class="game-search-icon">🔍</span>
+                <input
+                  type="text"
+                  class="game-search-input"
+                  placeholder="Recherche un jeu (ex : Valorant, Minecraft...)"
+                  [value]="gameSearchText"
+                  (input)="onGameInput($any($event.target).value)"
+                  (focus)="openDropdown()"
+                  autocomplete="off"
+                />
+              </div>
+
+              @if (gameDropdownOpen) {
+                <div class="game-dropdown">
+
+                  @if (filteredGameSuggestions.length === 0 && !isCustomGame) {
+                    <div class="game-dropdown__empty">Aucun jeu trouvé.</div>
+                  }
+
+                  @for (g of filteredGameSuggestions; track g.id) {
+                    <button type="button" class="game-dropdown__item" (mousedown)="selectGameSuggestion(g)">
+                      <span class="game-dropdown__emoji">{{ g.icon }}</span>
+                      <span class="game-dropdown__name">{{ g.label }}</span>
+                      <span class="game-dropdown__cat">{{ g.category }}</span>
+                    </button>
+                  }
+
+                  @if (isCustomGame && !showCategoryPicker) {
+                    <button type="button" class="game-dropdown__item game-dropdown__item--custom" (mousedown)="showCustomCategoryPicker()">
+                      ➕ Ajouter "{{ gameSearchText.trim() }}"
+                    </button>
+                  }
+
+                  @if (isCustomGame && showCategoryPicker) {
+                    <div class="category-picker">
+                      <p class="category-picker__label">Catégorie pour "{{ gameSearchText.trim() }}" :</p>
+                      <div class="category-picker__chips">
+                        @for (cat of categories; track cat) {
+                          <button
+                            type="button"
+                            class="chip"
+                            [class.chip--on]="customGameCategory === cat"
+                            (mousedown)="customGameCategory = cat"
+                          >{{ cat }}</button>
+                        }
+                      </div>
+                      <button
+                        type="button"
+                        class="btn btn--primary btn--sm"
+                        [disabled]="!customGameCategory"
+                        (mousedown)="confirmCustomGame()"
+                      >Confirmer</button>
+                    </div>
+                  }
+
+                </div>
+              }
+            </div>
+          }
 
           @if (submitted && !selectedGame) {
             <span class="field-error">Choisis un jeu pour continuer.</span>

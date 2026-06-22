@@ -1,16 +1,18 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../core/services/auth.service';
 import { SessionService } from '../core/services/session.service';
-import { Game, PlayerLevel, AgeRange, Language } from '../core/types/database.types';
+import { Game, PlayerLevel, AgeRange, Language, GameCategory } from '../core/types/database.types';
 import { NavbarComponent } from '../navbar/navbar.component';
-import { GAMES_LIST } from '../core/data/games.data';
+import { GAMES_LIST, GameEntry } from '../core/data/games.data';
 
-const FALLBACK_GAMES: Game[] = GAMES_LIST.map(g => ({
-  id: g.id, name: g.label, emoji: g.icon, category: g.category, created_at: ''
-}));
+const CATEGORY_EMOJI: Record<string, string> = {
+  'FPS': '🔫', 'MOBA': '⚔️', 'Battle Royale': '🏗️', 'RPG': '🧙',
+  'MMO': '🌐', 'Stratégie': '🏰', 'Sport': '🏆', 'Simulation': '🎮'
+};
 
 @Component({
   selector: 'app-create-session',
@@ -20,12 +22,18 @@ const FALLBACK_GAMES: Game[] = GAMES_LIST.map(g => ({
   styleUrl: './create-session.component.scss'
 })
 export class CreateSessionComponent implements OnInit {
-  games: Game[] = [];
   selectedGame: Game | null = null;
 
-  levels: PlayerLevel[] = ['Débutant', 'Intermédiaire', 'Confirmé', 'Expert'];
-  ageRanges: AgeRange[] = ['13-17 ans', '18-25 ans', '26-35 ans', '35+ ans'];
-  languages: Language[] = ['Français', 'English', 'Español', 'Deutsch', 'Português'];
+  // Autocomplete
+  gameSearchText = '';
+  gameDropdownOpen = false;
+  showCategoryPicker = false;
+  customGameCategory: GameCategory | '' = '';
+
+  levels: PlayerLevel[]  = ['Débutant', 'Intermédiaire', 'Confirmé', 'Expert'];
+  ageRanges: AgeRange[]  = ['13-17 ans', '18-25 ans', '26-35 ans', '35+ ans'];
+  languages: Language[]  = ['Français', 'English', 'Español', 'Deutsch', 'Português'];
+  categories: GameCategory[] = ['FPS', 'MOBA', 'Stratégie', 'Battle Royale', 'RPG', 'Sport', 'MMO', 'Simulation'];
 
   selectedLanguages = new Set<Language>();
 
@@ -38,7 +46,8 @@ export class CreateSessionComponent implements OnInit {
     private auth: AuthService,
     private sessionSvc: SessionService,
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private elRef: ElementRef
   ) {
     this.form = this.fb.group({
       description:      ['', [Validators.required, Validators.minLength(10), Validators.maxLength(300)]],
@@ -64,12 +73,73 @@ export class CreateSessionComponent implements OnInit {
 
   ngOnInit() {
     if (!this.auth.currentUser) { this.router.navigate(['/connexion']); return; }
-    this.sessionSvc.getGames().subscribe(g => {
-      this.games = g.length > 0 ? g : FALLBACK_GAMES;
-    });
   }
 
-  selectGame(game: Game) { this.selectedGame = game; }
+  // ─── Autocomplete ────────────────────────────────────────────────────────────
+
+  get filteredGameSuggestions(): GameEntry[] {
+    const q = this.gameSearchText.toLowerCase().trim();
+    if (!q) return GAMES_LIST.slice(0, 8);
+    return GAMES_LIST.filter(g => g.label.toLowerCase().includes(q)).slice(0, 10);
+  }
+
+  get isCustomGame(): boolean {
+    const q = this.gameSearchText.trim();
+    return q.length >= 2 && !GAMES_LIST.some(g => g.label.toLowerCase() === q.toLowerCase());
+  }
+
+  onGameInput(value: string) {
+    this.gameSearchText = value;
+    this.gameDropdownOpen = true;
+    this.showCategoryPicker = false;
+    this.customGameCategory = '';
+  }
+
+  openDropdown() {
+    this.gameDropdownOpen = true;
+  }
+
+  selectGameSuggestion(entry: GameEntry) {
+    this.gameSearchText = entry.label;
+    this.gameDropdownOpen = false;
+    this.showCategoryPicker = false;
+    this.selectedGame = { id: '_pending_' + entry.id, name: entry.label, emoji: entry.icon, category: entry.category, created_at: '' };
+  }
+
+  showCustomCategoryPicker() {
+    this.showCategoryPicker = true;
+  }
+
+  confirmCustomGame() {
+    if (!this.customGameCategory) return;
+    const name = this.gameSearchText.trim();
+    this.selectedGame = {
+      id: '_custom',
+      name,
+      emoji: CATEGORY_EMOJI[this.customGameCategory] ?? '🎮',
+      category: this.customGameCategory as GameCategory,
+      created_at: ''
+    };
+    this.gameDropdownOpen = false;
+    this.showCategoryPicker = false;
+  }
+
+  clearGame() {
+    this.selectedGame = null;
+    this.gameSearchText = '';
+    this.gameDropdownOpen = false;
+    this.showCategoryPicker = false;
+    this.customGameCategory = '';
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (!this.elRef.nativeElement.contains(event.target)) {
+      this.gameDropdownOpen = false;
+    }
+  }
+
+  // ─── Formulaire ──────────────────────────────────────────────────────────────
 
   toggleLanguage(lang: Language) {
     this.selectedLanguages.has(lang)
@@ -80,7 +150,7 @@ export class CreateSessionComponent implements OnInit {
   get descLength(): number { return this.form.value.description?.length ?? 0; }
   get f() { return this.form.controls; }
 
-  onSubmit() {
+  async onSubmit() {
     this.submitted = true;
     this.errorMsg  = '';
 
@@ -89,40 +159,47 @@ export class CreateSessionComponent implements OnInit {
 
     if (this.form.invalid) {
       const c = this.form.controls;
-      if (c['description'].errors)         this.errorMsg = 'La description doit faire au moins 10 caractères.';
-      else if (c['level_required'].errors)  this.errorMsg = 'Sélectionne un niveau requis.';
-      else if (c['age_range'].errors)       this.errorMsg = 'Sélectionne une tranche d\'âge.';
-      else if (c['discord_invite'].errors)  this.errorMsg = 'Saisis le code de ton serveur Discord.';
-      else                                  this.errorMsg = 'Vérifie que tous les champs sont bien remplis.';
+      if (c['description'].errors)        this.errorMsg = 'La description doit faire au moins 10 caractères.';
+      else if (c['level_required'].errors) this.errorMsg = 'Sélectionne un niveau requis.';
+      else if (c['age_range'].errors)      this.errorMsg = 'Sélectionne une tranche d\'âge.';
+      else if (c['discord_invite'].errors) this.errorMsg = 'Saisis le code de ton serveur Discord.';
+      else                                 this.errorMsg = 'Vérifie que tous les champs sont bien remplis.';
       return;
     }
 
-    if (!this.auth.currentUser) {
-      this.errorMsg = 'Tu dois être connecté pour créer une session.';
-      return;
-    }
+    if (!this.auth.currentUser) { this.errorMsg = 'Tu dois être connecté pour créer une session.'; return; }
 
     const v = this.form.value;
 
-    // Validation du code Discord
     const discordCode = v.discord_invite?.trim() ?? '';
     if (v.discord_required && !/^[A-Za-z0-9_-]{2,32}$/.test(discordCode)) {
-      this.errorMsg = 'Le code d\'invitation Discord doit contenir uniquement des lettres, chiffres, tirets ou underscores (2-32 caractères).';
+      this.errorMsg = 'Le code d\'invitation Discord est invalide (2-32 caractères alphanumériques).';
       return;
     }
 
-    // Validation de l'IP TeamSpeak
     const tsIp = v.teamspeak_ip?.trim() ?? '';
     if (tsIp && !/^(\d{1,3}\.){3}\d{1,3}(:\d{1,5})?$/.test(tsIp)) {
-      this.errorMsg = 'L\'adresse TeamSpeak doit être une IP valide (ex : 192.168.1.1 ou 192.168.1.1:9987).';
+      this.errorMsg = 'L\'adresse TeamSpeak doit être une IP valide (ex : 192.168.1.1:9987).';
       return;
     }
 
     this.saving = true;
+
+    // Résoudre le jeu → s'assurer qu'il existe en base
+    const resolvedGame = await firstValueFrom(
+      this.sessionSvc.getOrCreateGame(this.selectedGame.name, this.selectedGame.emoji, this.selectedGame.category)
+    );
+
+    if (!resolvedGame) {
+      this.saving = false;
+      this.errorMsg = 'Impossible de valider le jeu sélectionné. Réessaie.';
+      return;
+    }
+
     const user = this.auth.currentUser;
 
     this.sessionSvc.createSession({
-      game_id:          this.selectedGame.id,
+      game_id:          resolvedGame.id,
       description:      v.description,
       level_required:   v.level_required,
       age_range:        v.age_range,

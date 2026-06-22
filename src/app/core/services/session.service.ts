@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { from, Observable, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { map, catchError, switchMap } from 'rxjs/operators';
 import { SupabaseService } from './supabase.service';
 import { Session, SessionFilters, Comment, Game, PlayerLevel, AgeRange, Language } from '../types/database.types';
 
@@ -78,6 +78,24 @@ export class SessionService {
         console.error('Erreur getSessions:', err);
         return of([]);
       })
+    );
+  }
+
+  getOrCreateGame(name: string, emoji: string, category: GameCategory): Observable<Game | null> {
+    if (!this.supabase.isBrowser) return of(null);
+    return from(
+      this.supabase.client.from('games').select('*').eq('name', name).maybeSingle()
+    ).pipe(
+      switchMap(({ data }) => {
+        if (data) return of(data as Game);
+        return from(
+          this.supabase.client.from('games').insert({ name, emoji, category } as any).select('*').single()
+        ).pipe(
+          map(({ data: d, error }) => { if (error) throw error; return d as Game; }),
+          catchError(() => of(null))
+        );
+      }),
+      catchError(() => of(null))
     );
   }
 
